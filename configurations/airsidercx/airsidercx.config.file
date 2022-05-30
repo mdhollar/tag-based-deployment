@@ -1,7 +1,7 @@
  {
      "metadata": {
-        "equip_json": "/home/volttron/git/intellimation/tag_based_setup/json/Anacostia_HS_EQUIP_haystack.json",
-        "points_json": "/home/volttron/git/intellimation/tag_based_setup/json/Anacostia_HS_POINTS_haystack.json"
+        "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/Anacostia_HS_EQUIP_haystack.json",
+        "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/Anacostia_HS_POINTS_haystack.json"
         },
 
      "site_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs",
@@ -18,7 +18,7 @@
             "duct_stcpr": "SaPress",
             "duct_stcpr_stpt": "SaPressSp",
             "sa_temp": "SaTemp",
-            "fan_speedcmd": SaFanSpdCmd",
+            "fan_speedcmd": "SaFanSpdCmd",
             "sat_stpt": "SaTempSp"
         },
      # The field that contains the above point metadata
