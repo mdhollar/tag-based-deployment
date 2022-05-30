@@ -1,0 +1,19 @@
+ {
+     "metadata": {
+        "equip_json": "/home/volttron/git/intellimation/tag_based_setup/json/Anacostia_HS_EQUIP_haystack.json",
+        "points_json": "/home/volttron/git/intellimation/tag_based_setup/json/Anacostia_HS_POINTS_haystack.json"
+        },
+     "site_id": "r:intellimation.dc_dgs.dcps.brookland_ms",
+     "output_dir":"/home/volttron/git/intellimation/tag_based_setup/output/anacostia_driver_configs",
+     "config_template": {
+              "driver_type": "normalgw",
+              "driver_config": {
+                "point_service": "localhost:8080",
+                "bacnet_service": "localhost:8080",
+                "priority": 14,
+                "query": "@period:[1, +inf] @attr_device_id:[{device_id},{device_id}] @attr_prop_object_name: {obj_name}",
+                "topic_name_format": "object_name:{prop_object_name}"
+              },
+              "interval": 60
+            }
+ }
