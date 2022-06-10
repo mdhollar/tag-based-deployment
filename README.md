@@ -22,7 +22,7 @@ Currently there is config generator for
 3. JsonDriverConfigGenerator: Derives from DriverConfigGenerator and reads haystack tags from two json files - 
    one for equipment tags and one for point tags - and generates driver configurations for AHUs and VAVs
 
-##Configuration for DriverConfigGenerator
+## Configuration for DriverConfigGenerator
 The configuration file for this config generator script consists of four types of data
 1. metadata - that gives the details of where the haystack data is stored and how to access it
 2. Optional site, campus and building details that can be used to query data and also generate volttron topic names 
