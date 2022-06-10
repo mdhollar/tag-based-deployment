@@ -22,7 +22,10 @@
      # optional driver topic_prefix. By default devices/<campus>/<building/site>/<device>/<subdevice>,
      "topic_prefix": "devices/WDC/OJS",
 
+     # where generated configs should be saved. Code will try to do makedir -p
      "output_dir": "/home/volttron/git/intellimation/tag_based_setup/output/local_brookland_config",
+
+     # Template for driver configuration
      "config_template": {
               "driver_type": "normalgw",
               "driver_config": {

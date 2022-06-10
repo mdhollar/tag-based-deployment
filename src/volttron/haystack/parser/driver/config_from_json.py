@@ -131,5 +131,5 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
 
 if __name__ == '__main__':
     d = JsonDriverConfigGenerator(
-        "/home/volttron/git/intellimation/tag_based_setup/configurations/driver.config.file.json")
+        "/home/volttron/git/intellimation/intellimation_tcf/configurations/driver/driver.config.file")
     d.generate_configs()
