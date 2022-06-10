@@ -105,8 +105,3 @@ class AirsideRCxConfigGenerator:
         comments are removed.
         """
         return _comment_re.sub(self._repl, string)
-
-
-if __name__ == '__main__':
-    d = AirsideRCxConfigGenerator(
-        "/home/volttron/git/intellimation/tag_based_setup/configurations/aircx.config.db.json")
