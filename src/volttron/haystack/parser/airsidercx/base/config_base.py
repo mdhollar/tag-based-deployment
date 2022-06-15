@@ -56,7 +56,7 @@ class AirsideRCxConfigGenerator:
         # initialize output dir
         default_prefix = self.building + "_" if self.building else ""
         self.output_dir = self.config_dict.get(
-            "output_dir", f"{default_prefix}driver_configs")
+            "output_dir", f"{default_prefix}airsidercx_configs")
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir, exist_ok=True)
         elif not os.path.isdir(self.output_dir):
