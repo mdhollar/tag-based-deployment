@@ -1,7 +1,7 @@
  {
      "metadata": {
-        "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/Anacostia_HS_EQUIP_haystack.json",
-        "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/Anacostia_HS_POINTS_haystack.json"
+        "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_equip_haystack.json",
+        "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_points_haystack.json"
         },
 
      "site_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs",
@@ -24,7 +24,7 @@
      # The field that contains the above point metadata
      "point_meta_field": "miniDis",
 
-     "output_dir":"output/brookland_aircx_configs",
+     "output_dir":"airsidercx_configs_from_json",
 
      "config_template": {
         "analysis_name": "AirsideAIRCx",

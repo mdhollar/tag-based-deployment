@@ -1,7 +1,7 @@
  {
      "metadata": {
-        "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/Anacostia_HS_EQUIP_haystack.json",
-        "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/Anacostia_HS_POINTS_haystack.json"
+        "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_equip_haystack.json",
+        "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_points_haystack.json"
         },
      # If provided query will be filtered using this condition
      "site_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs",
@@ -14,7 +14,7 @@
      #"topic_prefix": "devices/WDC/OJS",
 
      # where generated configs should be saved. Code will try to do makedir -p
-     "output_dir":"/home/volttron/git/intellimation/intellimation_tcf/output/anacostia_driver_configs_new",
+     "output_dir":"driver_configs_from_json",
 
       # Template for driver configuration
      "config_template": {

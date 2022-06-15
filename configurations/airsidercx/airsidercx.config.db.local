@@ -30,7 +30,7 @@
      # The field that contains the above point metadata
      "point_meta_field": "dis",
 
-     "output_dir":"output/brookland_aircx_configs",
+     "output_dir":"airsidercx_configs_from_db",
      "config_template": {
         "analysis_name": "AirsideAIRCx",
         "device": {

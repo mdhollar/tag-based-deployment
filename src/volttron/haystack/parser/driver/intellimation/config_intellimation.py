@@ -1,5 +1,5 @@
 import copy
-import json
+import sys
 import re
 
 import psycopg2
@@ -116,7 +116,13 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
         return driver
 
 
-if __name__ == '__main__':
-    d = IntellimationDriverConfigGenerator(
-        "/home/volttron/git/intellimation/tag_based_setup/configurations/driver.config.db.local")
+def main():
+    if len(sys.argv) != 2:
+        print("script requires one argument - path to configuration file")
+        exit()
+    config_path = sys.argv[1]
+    d = IntellimationDriverConfigGenerator(config_path)
     d.generate_configs()
+
+if __name__ == '__main__':
+    main()

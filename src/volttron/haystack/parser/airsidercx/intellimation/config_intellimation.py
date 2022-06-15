@@ -1,8 +1,9 @@
 import copy
 import json
 import re
-
+import sys
 import psycopg2
+
 from volttron.haystack.parser.airsidercx.base.config_base import \
     AirsideRCxConfigGenerator
 
@@ -135,7 +136,14 @@ class IntellimationAirsideRCxConfigGenerator(AirsideRCxConfigGenerator):
         return ahu, final_config
 
 
-if __name__ == '__main__':
-    d = IntellimationAirsideRCxConfigGenerator(
-        "/home/volttron/git/intellimation/intellimation_tcf/configurations/airsidercx/airsidercx.config.db.local")
+def main():
+    if len(sys.argv) != 2:
+        print("script requires one argument - path to configuration file")
+        exit()
+    config_path = sys.argv[1]
+    d = IntellimationAirsideRCxConfigGenerator(config_path)
     d.generate_configs()
+
+
+if __name__ == '__main__':
+    main()
