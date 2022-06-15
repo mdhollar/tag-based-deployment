@@ -235,8 +235,45 @@ Sample configurations can be found [here](configurations/airsidercx)
  lines will be in the final generated configuration.
 
 # Running config generators
-
-All config generator scripts can be run as python scripts passing the path to the ConfigGenerator configuration file. 
+1. Clone source code:
+   ```
+   git clone https://github.com/schandrika/intellimation_tcf
+   cd intellimation_tcf
+   ```
+2. Install virtual environment
+   You can install these parsers either on system python (for example, when using docker containers exclusively for this) or install in a virtual environment when you are using a environment shared with other projects. Creating virtual environment is highly recommended.
+   To create a virtual environment and activate it for use run the command in the root directory of this project
+   ```
+   python3 -m venv ./.venv
+   source .venv/bin/activate
+   ```
+3. Install parsers
+   ```
+   python setup.py install
+   ```
+4. If your haystack tags are stored in postgresql database, you need to install python postgresql connector
+   ```
+   pip install psycopg2
+   ```
+5. Create configuration files for the parser that you want to run. Example configurations are available under configurations directory
+6. Run parser
+   1. To generate platform driver configurations using haystack tags stored in json file
+      ```
+      config-gen-json.driver <path to parser's configuration file>
+      ```
+   3. To generate platform driver configurations using haystack tags stored in postgres db 
+      ```
+      config-gen-db.driver <path to parser's configuration file>
+      ```
+   5. To generate airsidercx agent configurations using haystack tags stored in json file
+      ```
+      config-gen-json.airsidercx <path to parser's configuration file>
+      ```
+   7. To generate airsidercx agent configurations using haystack tags stored in postgres db 
+      ```
+      config-gen-db.airsidercx <path to parser's configuration file>
+      ```
+   Output files will be the path provide in configuration. If no output path is provided in configuration file, then by default output gets written to <current directory>/<building_id>_driver_configs for driver config generator and <current directory>/<building_id>_airsidercx_configs by airsidercx config generator. Relative path is relative to the directory from which the command is run
 
 # Extending config generators
 
