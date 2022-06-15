@@ -23,7 +23,7 @@
      "topic_prefix": "devices/WDC/OJS",
 
     # where generated configs should be saved. Code will try to do makedir -p
-     "output_dir": "/home/volttron/git/intellimation/tag_based_setup/output/remote_brookland_config",
+     "output_dir": "driver_config_from_remote_db",
 
       # Template for driver configuration
      "config_template": {

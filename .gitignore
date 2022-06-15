@@ -1,4 +1,7 @@
 /.idea/
 /.venv/
+/build/
+/dist/
+/src/intellimation_tcf.egg-info/
 __pycache__
 *.pyc
