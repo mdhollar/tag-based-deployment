@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 import sys
 
-from volttron.haystack.parser.airsidercx.base.config_base import \
+from volttron.haystack.parser.airsidercx.config_base import \
     AirsideRCxConfigGenerator
 
 

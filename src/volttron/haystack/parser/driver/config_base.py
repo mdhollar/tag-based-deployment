@@ -1,11 +1,7 @@
 import json
 import os.path
 from abc import abstractmethod
-import re
-
-_comment_re = re.compile(
-    r'((["\'])(?:\\?.)*?\2)|(/\*.*?\*/)|((?:#|//).*?(?=\n|$))',
-    re.MULTILINE | re.DOTALL)
+from volttron.haystack.parser.utils import strip_comments
 
 
 class DriverConfigGenerator:
@@ -20,7 +16,7 @@ class DriverConfigGenerator:
         else:
             try:
                 with open(config, "r") as f:
-                    self.config_dict = json.loads(self.strip_comments(f.read()))
+                    self.config_dict = json.loads(strip_comments(f.read()))
             except Exception:
                 raise
 
@@ -28,7 +24,7 @@ class DriverConfigGenerator:
         self.building = self.config_dict.get("building")
         self.campus = self.config_dict.get("campus")
         if not self.building and self.site_id:
-            self.building = self.site_id.split(".")[-1]
+            self.building = self.get_name_from_id(self.site_id)
         if not self.campus and self.site_id:
             self.campus = self.site_id.split(".")[-2]
 
@@ -43,7 +39,7 @@ class DriverConfigGenerator:
         if not topic_prefix.endswith("/"):
             topic_prefix = topic_prefix + "/"
         self.ahu_topic_pattern = topic_prefix + "{}"
-        self.vav_topic_pattern = topic_prefix + "{}/{}"
+        self.vav_topic_pattern = topic_prefix + "{ahu}/{vav}"
 
         self.config_template = self.config_dict.get("config_template")
 
@@ -70,32 +66,43 @@ class DriverConfigGenerator:
 
     def generate_configs(self):
         result = self.get_ahu_and_vavs()
-        print(f"Got ahu and vavs as {result}")
         if isinstance(result, dict):
             iterator = result.items()
         else:
             iterator = result
         for ahu_id, vavs in iterator:
             ahu_name, result_dict = self.generate_ahu_configs(ahu_id, vavs)
+            if ahu_name:
+                with open(f"{self.output_dir}/{ahu_name}.json", 'w') as outfile:
+                    json.dump(result_dict, outfile, indent=4)
+            else:
+                with open(f"{self.output_dir}/unmapped_vavs.json", 'w') as outfile:
+                    json.dump(result_dict, outfile, indent=4)
 
-            with open(f"{self.output_dir}/{ahu_name}.json", 'w') as outfile:
-                json.dump(result_dict, outfile, indent=4)
+    def generate_ahu_configs(self, ahu_id, vavs):
+        final_mapper = dict()
+        ahu = ""
+        ahu = self.get_name_from_id(ahu_id)
+        # First create the config for the ahu
+        topic = self.ahu_topic_pattern.format(ahu)
+        if ahu_id:
+            # replace right variables in driver_config_template
+            final_mapper[topic] = self.generate_config_from_template(ahu_id, "ahu")
+            topic_pattern = self.vav_topic_pattern.format(ahu=ahu, vav='{vav}') #fill ahu, leave vav variable
+        else:
+            topic_pattern = self.vav_topic_pattern.replace("{ahu}/", "")  # ahu
+        # Now loop through and do the same for all vavs
+        for vav_id in vavs:
+            vav = self.get_name_from_id(vav_id)
+            topic = topic_pattern.format(vav=vav)
+            # replace right variables in driver_config_template
+            final_mapper[topic] = self.generate_config_from_template(vav_id, "vav")
+        return ahu, final_mapper
 
     @abstractmethod
-    def generate_ahu_configs(self, ahu_id, vavs):
+    def generate_config_from_template(self, equip_id, equip_type):
         pass
 
-    def _repl(self, match):
-        """Replace the matched group with an appropriate string."""
-        # If the first group matched, a quoted string was matched and should
-        # be returned unchanged.  Otherwise a comment was matched and the
-        # empty string should be returned.
-        return match.group(1) or ''
-
-    def strip_comments(self, string):
-        """Return string with all comments stripped.
-
-        Both JavaScript-style comments (//... and /*...*/) and hash (#...)
-        comments are removed.
-        """
-        return _comment_re.sub(self._repl, string)
+    @abstractmethod
+    def get_name_from_id(self, id):
+        pass

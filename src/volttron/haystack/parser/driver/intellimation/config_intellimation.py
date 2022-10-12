@@ -3,7 +3,7 @@ import sys
 import re
 
 import psycopg2
-from volttron.haystack.parser.driver.base.config_base import \
+from volttron.haystack.parser.driver.config_base import \
     DriverConfigGenerator
 
 
@@ -87,24 +87,6 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
             if cursor:
                 cursor.close()
 
-    def generate_ahu_configs(self, ahu_id, vavs):
-        final_mapper = dict()
-        ahu = ahu_id.split(".")[-1]
-        # First create the config for the ahu
-        topic = self.ahu_topic_pattern.format(ahu)
-        # replace right variables in driver_config_template
-        final_mapper[topic] = self.generate_config_from_template(ahu_id,
-                                                                 "ahu")
-
-        # Now loop through and do the same for all vavs
-        for vav_id in vavs:
-            vav = vav_id.split(".")[-1]
-            topic = self.vav_topic_pattern.format(ahu, vav)
-            # replace right variables in driver_config_template
-            final_mapper[topic] = self.generate_config_from_template(vav_id,
-                                                                     "vav")
-        return ahu, final_mapper
-
     def generate_config_from_template(self, equip_id, equip_type):
         device_id, device_name = self.query_device_id_name(equip_id,
                                                            equip_type)
@@ -115,6 +97,9 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
         driver["driver_config"]["query"] = nf_query
         return driver
 
+    def get_name_from_id(self, id):
+        name = id.split(".")[-1]
+        return name
 
 def main():
     if len(sys.argv) != 2:

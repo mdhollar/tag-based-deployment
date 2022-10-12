@@ -16,14 +16,10 @@ setup(
                 'based on haystack tags',
     entry_points={
         'console_scripts': [
-            'config-gen-db.driver=volttron.haystack.parser.driver.'
-            'intellimation.config_intellimation:main',
-            'config-gen-json.driver=volttron.haystack.parser.driver.'
-            'config_from_json:main',
-            'config-gen-db.airsidercx=volttron.haystack.parser.airsidercx.'
-            'intellimation.config_intellimation:main',
-            'config-gen-json.airsidercx=volttron.haystack.parser.airsidercx.'
-            'config_from_json:main',
+            'config-gen-db.driver=volttron.haystack.parser.driver.intellimation.config_intellimation:main',
+            'config-gen-json.driver=volttron.haystack.parser.driver.json.config_from_json:main',
+            'config-gen-db.airsidercx=volttron.haystack.parser.airsidercx.intellimation.config_intellimation:main',
+            'config-gen-json.airsidercx=volttron.haystack.parser.airsidercx.json.config_from_json:main',
         ]
     }
 )
