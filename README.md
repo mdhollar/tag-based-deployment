@@ -56,9 +56,13 @@ Below is an example configuration for  IntellimationDriverConfigGenerator where 
 
      # Optional campus. If not provided will be parsed from site_id else will be empty. defaults to empty
      # "campus": "dcps",
+     
      # Optional building or site name. If not provided parsed from site_id if site_id is provided. defaults to empty
      # "building": "",
+     
      # optional driver topic_prefix. By default devices/<campus>/<building/site>/<device>/<subdevice>,
+     # if campus and building information is not provided through site id, or (campus, building) or topic_prefix then
+     # topic would be of the format devices/<device>/<subdevice>
      "topic_prefix": "devices/WDC/OJS",
 
      # where generated configs should be saved. Code will try to do makedir -p
@@ -71,6 +75,10 @@ Below is an example configuration for  IntellimationDriverConfigGenerator where 
                 "point_service": "localhost:8080",
                 "bacnet_service": "localhost:8080",
                 "priority": 14,
+                # query format when device id is not unique and both device id and obj_name are required to uniquely
+                # identify a device
+                # if device id is unique, we can query with device id alone, for such sites remove
+                # "@attr_prop_object_name: {obj_name}" from the value of below parameter
                 "query": "@period:[1, +inf] @attr_device_id:[{device_id},{device_id}] ",
                 "topic_name_format": "object_name:{prop_object_name}"
               },
