@@ -39,7 +39,9 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
             query = query + f" AND tags->>'siteRef'='{self.site_id}' "
         query = query + f" GROUP BY tags #>>'{{ahuRef}}'"
         # TODO - add ahu without vavs
+        print(query)
         return self.execute_query(query)
+        print(result)
 
     def query_device_id_name(self, equip_id, equip_type):
         query = f"SELECT device_name, topic_name \
@@ -76,10 +78,8 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
     def execute_query(self, query):
         cursor = self.connection.cursor()
         try:
-            print(query)
             cursor.execute(query)
             result = cursor.fetchall()
-            print(result)
             return result
         except Exception:
             raise

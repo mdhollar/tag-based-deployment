@@ -1,17 +1,21 @@
  {
      "metadata": {
-        "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/ojs_equip_haystack.json",
-        "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/ojs_points_haystack.json"
+        "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_equip_haystack.json",
+        "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_points_haystack.json"
         },
      # If provided query will be filtered using this condition
      #"site_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs",
 
      # Optional campus. If not provided will be parsed from site_id else will be empty. defaults to empty
-     # "campus": "dcps",
+      "campus": "dcps",
+
      # Optional building or site name. If not provided parsed from site_id if site_id is provided. defaults to empty
-     # "building": "",
+      "building": "anacostia_hs",
+
      # optional driver topic_prefix. By default devices/<campus>/<building/site>/<device>/<subdevice>,
-     #"topic_prefix": "devices/WDC/OJS",
+     # if campus and building information is not provided through site id, campus, building, or topic_prefix then
+     # topic would be of the format devices/<device>/<subdevice>
+     "topic_prefix": "devices/WDC/Anacostia",
 
      # Optional. where generated configs should be saved. Code will try to do makedir -p
      #"output_dir":"driver_configs_from_json",
