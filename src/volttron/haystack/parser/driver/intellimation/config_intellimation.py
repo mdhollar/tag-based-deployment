@@ -28,13 +28,13 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
         self.connection.autocommit = True
         self.equip_table = metadata.get("equip_table")
         self.point_table = metadata.get("point_table")
-        self.site_id = metadata.get("site_id", "")
         self.ahu_name_pattern = re.compile(r"\[\d+\]")
 
     def get_ahu_and_vavs(self):
         query = f"SELECT tags #>>'{{ahuRef}}', json_agg(topic_name) \
         FROM {self.equip_table} \
         WHERE tags->>'ahuRef' is NOT NULL AND tags->>'vav'='m:' "
+        print(f"site id is {self.site_id}")
         if self.site_id:
             query = query + f" AND tags->>'siteRef'='{self.site_id}' "
         query = query + f" GROUP BY tags #>>'{{ahuRef}}'"
