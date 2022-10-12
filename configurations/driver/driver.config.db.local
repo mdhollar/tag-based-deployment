@@ -4,37 +4,30 @@
                 "dbname": "intellimation",
                 "host": "localhost",
                 "port": 5432,
-                "user": "postgres",
+                "user": "volttron",
                 "password": "volttron"
             },
-        "equip_table": "equipment",
-        "point_table": "points"
+        "equip_table": "public.equipment",
+        "point_table": "public.points"
         },
 
-     # If provided query will be filtered using this condition
-     "site_id": "r:intellimation.dc_dgs.dcps.ojs",
+ "config_template": {
+    "driver_type": "normalgw",
+    "driver_config": {
+      "point_service": "localhost:8080",
+      "bacnet_service": "localhost:8080",
+      "priority": "14",
+      "topic_name_format": "",
+      # query format when device id is not unique and both device id and obj_name are required to uniquely
+      # identify a device
+      # if device id is unique, we can query with device id alone, for such sites remove
+      # "@attr_prop_object_name: {obj_name}" from the value of below parameter
+      "query": "@period:[1, +inf] @attr_device_id:[{device_id},{device_id}] @attr_prop_object_name: {obj_name}"
+    },
+    "interval": "60"
+  },
+  "site_id": "r:intellimation.dc_dgs.dcps.brookland_ms",
+  "campus": "dcps",
+  "topic_prefix": "devices/WDC/Brookland"
 
-
-     # Optional campus. If not provided will be parsed from site_id else will be empty. defaults to empty
-     # "campus": "dcps",
-     # Optional building or site name. If not provided parsed from site_id if site_id is provided. defaults to empty
-     # "building": "",
-     # optional driver topic_prefix. By default devices/<campus>/<building/site>/<device>/<subdevice>,
-     "topic_prefix": "devices/WDC/OJS",
-
-     # where generated configs should be saved. Code will try to do makedir -p
-     "output_dir": "driver_config_from_local_db",
-
-     # Template for driver configuration
-     "config_template": {
-              "driver_type": "normalgw",
-              "driver_config": {
-                "point_service": "localhost:8080",
-                "bacnet_service": "localhost:8080",
-                "priority": 14,
-                "query": "@period:[1, +inf] @attr_device_id:[{device_id},{device_id}] ",
-                "topic_name_format": "object_name:{prop_object_name}"
-              },
-              "interval": 60
-            }
  }

@@ -241,7 +241,9 @@ Sample configurations can be found [here](configurations/airsidercx)
    cd intellimation_tcf
    ```
 2. Install virtual environment
-   You can install these parsers either on system python (for example, when using docker containers exclusively for this) or install in a virtual environment when you are using a environment shared with other projects. Creating virtual environment is highly recommended.
+   You can install these parsers either on system python (for example, when using docker containers exclusively for this) or 
+   install in a virtual environment when you are using a environment shared with other projects. 
+   Creating virtual environment is highly recommended.
    To create a virtual environment and activate it for use run the command in the root directory of this project
    ```
    python3 -m venv ./.venv
@@ -273,12 +275,15 @@ Sample configurations can be found [here](configurations/airsidercx)
       ```
       config-gen-db.airsidercx <path to parser's configuration file>
       ```
-   Output files will be the path provide in configuration. If no output path is provided in configuration file, then by default output gets written to <current directory>/<building_id>_driver_configs for driver config generator and <current directory>/<building_id>_airsidercx_configs by airsidercx config generator. Relative path is relative to the directory from which the command is run
+   Output files will be the path provided in configuration. If no output path is provided in configuration file, then 
+   by default output gets written to <current directory>/<building_id>_driver_configs for driver config generator and 
+   <current directory>/<building_id>_airsidercx_configs by airsidercx config generator. 
+   Relative path is relative to the directory from which the command is run. 
 
 # Extending config generators
 
 These config generators use certain parsing logic specific to Intellimation sites. For example, how a device name is 
-parsed and used for query data from a device using a normal framework driver interface is specific to Intellimation, 
+parsed and used to query data from a device using a normal framework driver interface is specific to Intellimation, 
 however the base class and the child classes are structured such that the code can be easily extended for other 
 sites that use different driver interface and database store for storing haystack tags. 
 For example, a site that uses a bacnet driver can change the config_template in the configuration and override only 

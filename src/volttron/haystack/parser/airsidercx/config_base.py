@@ -1,11 +1,7 @@
 import json
 import os.path
 from abc import abstractmethod
-import re
-
-_comment_re = re.compile(
-    r'((["\'])(?:\\?.)*?\2)|(/\*.*?\*/)|((?:#|//).*?(?=\n|$))',
-    re.MULTILINE | re.DOTALL)
+from volttron.haystack.parser.utils import strip_comments
 
 
 # TODO - get ILC details and pull AirsideRCxConfigGenerator and
@@ -22,7 +18,7 @@ class AirsideRCxConfigGenerator:
         else:
             try:
                 with open(config, "r") as f:
-                    self.config_dict = json.loads(self.strip_comments(f.read()))
+                    self.config_dict = json.loads(strip_comments(f.read()))
             except Exception:
                 raise
 
@@ -76,7 +72,6 @@ class AirsideRCxConfigGenerator:
 
     def generate_configs(self):
         result = self.get_ahu_and_vavs()
-        print(f"Got ahu and vavs as {result}")
         if isinstance(result, dict):
             iterator = result.items()
         else:
@@ -90,18 +85,3 @@ class AirsideRCxConfigGenerator:
     @abstractmethod
     def generate_ahu_configs(self, ahu_id, vavs):
         pass
-
-    def _repl(self, match):
-        """Replace the matched group with an appropriate string."""
-        # If the first group matched, a quoted string was matched and should
-        # be returned unchanged.  Otherwise a comment was matched and the
-        # empty string should be returned.
-        return match.group(1) or ''
-
-    def strip_comments(self, string):
-        """Return string with all comments stripped.
-
-        Both JavaScript-style comments (//... and /*...*/) and hash (#...)
-        comments are removed.
-        """
-        return _comment_re.sub(self._repl, string)

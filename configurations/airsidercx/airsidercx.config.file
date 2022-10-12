@@ -4,6 +4,7 @@
         "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_points_haystack.json"
         },
 
+     # Make sure this site_id or campus&building information matches what is used for platform.driver
      "site_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs",
      # optional. if not provided will be derived from site_id.split('.')[-2]
      #"campus": "dcps",
@@ -24,7 +25,7 @@
      # The field that contains the above point metadata
      "point_meta_field": "miniDis",
 
-     "output_dir":"airsidercx_configs_from_json",
+     #"output_dir":"airsidercx_configs_from_json",
 
      "config_template": {
         "analysis_name": "AirsideAIRCx",

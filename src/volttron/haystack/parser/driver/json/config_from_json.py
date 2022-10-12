@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 import sys
 
-from volttron.haystack.parser.driver.base.config_base import \
+from volttron.haystack.parser.driver.config_base import \
     DriverConfigGenerator
 
 
@@ -102,24 +102,7 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                 return topic_name.split("/")[-1].split(":")[0]
         return ""
 
-    def generate_ahu_configs(self, ahu_id, vavs):
-        final_mapper = dict()
-        ahu = ahu_id.split(".")[-1]
-        # First create the config for the ahu
-        topic = self.ahu_topic_pattern.format(ahu)
-        # replace right variables in driver_config_template
-        print(f"AHU id is {ahu_id}")
-        final_mapper[topic] = self.generate_config_from_template(ahu_id, "ahu")
-
-        # Now loop through and do the same for all vavs
-        for vav_id in vavs:
-            vav = vav_id.split(".")[-1]
-            topic = self.vav_topic_pattern.format(ahu, vav)
-            # replace right variables in driver_config_template
-            final_mapper[topic] = self.generate_config_from_template(vav_id)
-        return ahu, final_mapper
-
-    def generate_config_from_template(self, equip_id, equip_type="vav"):
+    def generate_config_from_template(self, equip_id, equip_type):
         device_id, device_name = self.get_nf_device_id_and_name(equip_id,
                                                                 equip_type)
         driver = copy.deepcopy(self.config_template)
@@ -128,6 +111,10 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                                           obj_name=device_name)
         driver["driver_config"]["query"] = nf_query
         return driver
+
+    def get_name_from_id(self, id):
+        name = id.split(".")[-1]
+        return name
 
 
 def main():
