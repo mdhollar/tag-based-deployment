@@ -141,6 +141,9 @@ class JsonAirsideRCxConfigGenerator(AirsideRCxConfigGenerator):
 
         return ahu, final_config
 
+    def get_name_from_id(self, id):
+        name = id.split(".")[-1]
+        return name
 
 def main():
     if len(sys.argv) != 2:

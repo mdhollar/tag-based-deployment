@@ -26,7 +26,7 @@ class AirsideRCxConfigGenerator:
         self.building = self.config_dict.get("building")
         self.campus = self.config_dict.get("campus")
         if not self.building and self.site_id:
-            self.building = self.site_id.split(".")[-1]
+            self.building = self.get_name_from_id(self.site_id)
         if not self.campus and self.site_id:
             self.campus = self.site_id.split(".")[-2]
 
@@ -78,10 +78,18 @@ class AirsideRCxConfigGenerator:
             iterator = result
         for ahu_id, vavs in iterator:
             ahu_name, result_dict = self.generate_ahu_configs(ahu_id, vavs)
-
-            with open(f"{self.output_dir}/{ahu_name}.json", 'w') as outfile:
-                json.dump(result_dict, outfile, indent=4)
+            if ahu_name:
+                with open(f"{self.output_dir}/{ahu_name}.json", 'w') as outfile:
+                    json.dump(result_dict, outfile, indent=4)
+            else:
+                # TODO add a warning file with topic name and device id that doesn't have ahu ref
+                pass
 
     @abstractmethod
     def generate_ahu_configs(self, ahu_id, vavs):
         pass
+
+    @abstractmethod
+    def get_name_from_id(self, id):
+        pass
+
