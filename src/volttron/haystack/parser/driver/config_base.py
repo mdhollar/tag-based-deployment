@@ -1,5 +1,6 @@
 import json
 import os.path
+import sys
 from abc import abstractmethod
 from volttron.haystack.parser.utils import strip_comments
 
@@ -41,6 +42,15 @@ class DriverConfigGenerator:
         self.ahu_topic_pattern = topic_prefix + "{}"
         self.vav_topic_pattern = topic_prefix + "{ahu}/{vav}"
 
+        # List of all ahus equip ids
+        self.ahu_list = []
+        # List of all vav equip ids
+        self.vav_list = []
+
+        # If there are any vav's that are not mapped to a AHU use this dict to give additional details for user
+        # to help manually find the corresponding ahu
+        self.unmapped_device_details = dict()
+
         self.config_template = self.config_dict.get("config_template")
 
         # initialize output dir
@@ -65,19 +75,33 @@ class DriverConfigGenerator:
         pass
 
     def generate_configs(self):
-        result = self.get_ahu_and_vavs()
-        if isinstance(result, dict):
-            iterator = result.items()
+        ahu_and_vavs = self.get_ahu_and_vavs()
+        if isinstance(ahu_and_vavs, dict):
+            iterator = ahu_and_vavs.items()
         else:
-            iterator = result
+            iterator = ahu_and_vavs
         for ahu_id, vavs in iterator:
             ahu_name, result_dict = self.generate_ahu_configs(ahu_id, vavs)
+            if not result_dict:
+                continue  # no valid configs, move to the next ahu
             if ahu_name:
                 with open(f"{self.output_dir}/{ahu_name}.json", 'w') as outfile:
                     json.dump(result_dict, outfile, indent=4)
             else:
                 with open(f"{self.output_dir}/unmapped_vavs.json", 'w') as outfile:
                     json.dump(result_dict, outfile, indent=4)
+
+        # If unmapped devices exists, write additional unmapped_devices.txt that gives more info to user to map manually
+        if self.unmapped_device_details:
+            err_file = f"{self.output_dir}/unmapped_device_details"
+            with open(err_file, 'w') as outfile:
+                json.dump(self.unmapped_device_details, outfile, indent=4)
+
+            sys.stderr.write(f"\nUnable to generate configurations for all AHUs and VAVs. "
+                             f"Please see {err_file} for details")
+            sys.exit(1)
+        else:
+            sys.exit(0)
 
     def generate_ahu_configs(self, ahu_id, vavs):
         final_mapper = dict()
@@ -87,7 +111,9 @@ class DriverConfigGenerator:
         topic = self.ahu_topic_pattern.format(ahu)
         if ahu_id:
             # replace right variables in driver_config_template
-            final_mapper[topic] = self.generate_config_from_template(ahu_id, "ahu")
+            driver_config = self.generate_config_from_template(ahu_id, "ahu")
+            if driver_config:
+                final_mapper[topic] = driver_config
             topic_pattern = self.vav_topic_pattern.format(ahu=ahu, vav='{vav}') #fill ahu, leave vav variable
         else:
             topic_pattern = self.vav_topic_pattern.replace("{ahu}/", "")  # ahu
@@ -96,7 +122,9 @@ class DriverConfigGenerator:
             vav = self.get_name_from_id(vav_id)
             topic = topic_pattern.format(vav=vav)
             # replace right variables in driver_config_template
-            final_mapper[topic] = self.generate_config_from_template(vav_id, "vav")
+            driver_config = self.generate_config_from_template(vav_id, "vav")
+            if driver_config:
+                final_mapper[topic] = driver_config
         return ahu, final_mapper
 
     @abstractmethod

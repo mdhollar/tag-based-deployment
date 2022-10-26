@@ -29,19 +29,50 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
         self.equip_table = metadata.get("equip_table")
         self.point_table = metadata.get("point_table")
         self.ahu_name_pattern = re.compile(r"\[\d+\]")
+        self.equip_id_topic_name_map = dict()
 
     def get_ahu_and_vavs(self):
+
+        # 1. Query for vavs that are mapped to ahu
         query = f"SELECT tags #>>'{{ahuRef}}', json_agg(topic_name) \
         FROM {self.equip_table} \
-        WHERE tags->>'ahuRef' is NOT NULL AND tags->>'vav'='m:' "
+        WHERE tags->>'ahuRef' is NOT NULL AND tags->>'ahuRef' != '' AND tags->>'vav'='m:' "
         print(f"site id is {self.site_id}")
         if self.site_id:
             query = query + f" AND tags->>'siteRef'='{self.site_id}' "
         query = query + f" GROUP BY tags #>>'{{ahuRef}}'"
         # TODO - add ahu without vavs
-        print(query)
-        return self.execute_query(query)
-        print(result)
+        result = self.execute_query(query)
+
+        # 2. Query for ahus without vavs
+        query = f"SELECT tags #>>'{{id}}' \
+                FROM {self.equip_table} \
+                WHERE tags->>'ahu'='m:' "
+        if self.site_id:
+            query = query + f" AND tags->>'siteRef'='{self.site_id}' "
+        #print(query)
+        ahu_list = [x[0] for x in self.execute_query(query)]
+        #print(f"ahu_list is {ahu_list}")
+        if len(ahu_list) > len(result):  # There were ahus without vavs. Add those to result
+            for a in set(ahu_list) - set([x[0] for x in result]):
+                result.append((a, []))
+                print(f"Appending {a} to result")
+
+        # 3. query for vavs without ahus
+        query = f"SELECT tags #>>'{{id}}' \
+                        FROM {self.equip_table} \
+                        WHERE tags->>'vav'='m:' AND (tags->>'ahuRef' is NULL OR tags->>'ahuRef' = '')"
+        if self.site_id:
+            query = query + f" AND tags->>'siteRef'='{self.site_id}' "
+        #print(query)
+        temp = self.execute_query(query)
+        if temp:
+            unmapped_vav_list = [x[0] for x in temp]
+            #print(unmapped_vav_list)
+            result.append(("", unmapped_vav_list))
+            for vav in unmapped_vav_list:
+                self.unmapped_device_details[vav] = {"type": "vav", "error": "Unable to find ahuRef"}
+        return result
 
     def query_device_id_name(self, equip_id, equip_type):
         query = f"SELECT device_name, topic_name \
@@ -54,9 +85,20 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
         result = self.execute_query(query)
         if result:
             device_id, topic_name = result[0]
+            if equip_type == "vav" and equip_id in self.unmapped_device_details:
+                # grab the topic_name to shed some light into ahu mapping
+                self.unmapped_device_details[equip_id]["topic_name"] = topic_name
+                print(f"Added {equip_id}  {topic_name} to unmapped_device_details")
             object_name = self.get_object_name_from_topic(topic_name,
                                                           equip_type)
-            return device_id, object_name
+            return topic_name, device_id, object_name
+        else:
+            if not self.unmapped_device_details.get(equip_id):
+                self.unmapped_device_details[equip_id] = dict()
+            self.unmapped_device_details[equip_id]["type"] = equip_type
+            self.unmapped_device_details[equip_id]["error"] = f"Unable to find any points for {equip_id} from " \
+                                                              f"table:{self.point_table}"
+            return None, None, None
 
     def get_object_name_from_topic(self, topic_name, equip_type):
         # need device name only if device id is not unique
@@ -88,13 +130,22 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
                 cursor.close()
 
     def generate_config_from_template(self, equip_id, equip_type):
-        device_id, device_name = self.query_device_id_name(equip_id,
-                                                           equip_type)
+        topic_name, device_id, device_name = self.query_device_id_name(equip_id, equip_type)
         driver = copy.deepcopy(self.config_template)
         nf_query_format = driver["driver_config"]["query"]
-        nf_query = nf_query_format.format(device_id=device_id,
-                                          obj_name=device_name)
-        driver["driver_config"]["query"] = nf_query
+        if "{device_id}" in nf_query_format and device_id is None or \
+           "{obj_name}" in nf_query_format and device_name is None:
+            if not self.unmapped_device_details.get(equip_id):
+                self.unmapped_device_details[equip_id] = dict()
+            self.unmapped_device_details[equip_id]["type"] = equip_type
+            self.unmapped_device_details[equip_id]["topic_name"] = topic_name
+            self.unmapped_device_details[equip_id]["error"] = "Unable to parse point topic name for " \
+                                                              "nf device id and/or nf object name"
+            return None
+        else:
+            nf_query = nf_query_format.format(device_id=device_id,
+                                              obj_name=device_name)
+            driver["driver_config"]["query"] = nf_query
         return driver
 
     def get_name_from_id(self, id):

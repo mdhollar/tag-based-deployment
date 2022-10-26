@@ -34,11 +34,8 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
         # Initialize map of haystack id and nf device name
         self.equip_id_device_name_map = dict()
         self.equip_id_device_id_map = dict()
-        # List of all ahus equip ids
-        self.ahu_list = []
-        # List of all vav equip ids
-        self.vav_list = []
         self.ahu_name_pattern = re.compile(r"\[\d+\]")
+        self.equip_id_topic_name_map = dict()
 
     def get_ahu_and_vavs(self):
         rows = self.equip_json['rows']
@@ -47,12 +44,21 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
         for _d in rows:
             id_list = _d["id"].split(".")
             device = id_list[-1] if id_list else ""
-            if "vav" in device:
+            if "vav" in _d:  # if it tagged as vav
                 vav_list.append(_d)
-                ahu_dict[_d["ahuRef"]].append(_d["id"])
+                ahu_id = _d.get("ahuRef")
+                if ahu_id:
+                    ahu_dict[ahu_id].append(_d["id"])
+                else:
+                    # add to the list of unmapped
+                    ahu_dict[""].append(_d["id"])
+                    self.unmapped_device_details[_d["id"]] = {"type": "vav", "error": "Unable to find ahuRef"}
                 self.vav_list.append(_d["id"])
-        self.ahu_list.extend(ahu_dict.keys())
-        # TODO add ahu without vav
+            elif "ahu" in _d:  # if it is tagged as ahu
+                self.ahu_list.append(_d["id"])
+        if not set(self.ahu_list).issubset(set(ahu_dict)):
+            for a in set(self.ahu_list) - set(ahu_dict):
+                ahu_dict[a] = []
         return ahu_dict
 
     def get_nf_device_id_and_name(self, equip_id, equip_type="vav"):
@@ -64,12 +70,17 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                 id_list = _d["id"].split(".")
                 device = id_list[-2] if id_list else ""
                 if _d["equipRef"] in self.vav_list:
+                    self.equip_id_topic_name_map[_d["equipRef"]] = _d["topic_name"]
                     self.equip_id_device_name_map[_d["equipRef"]] = \
                         self.get_object_name_from_topic(_d["topic_name"],
                                                         "vav")
-                    self.equip_id_device_id_map[_d["equipRef"]] = \
-                            _d["topic_name"].split("/")[4]
+                    self.equip_id_device_id_map[_d["equipRef"]] = _d["topic_name"].split("/")[4]
+                    if _d["equipRef"] in self.unmapped_device_details:
+                        # grab the topic_name to shed some light into ahu mapping
+                        self.unmapped_device_details[_d["equipRef"]]["topic_name"] = _d["topic_name"]
+                        print(f"Added {_d['equipRef']} to unmapped_device_details")
                 elif _d["equipRef"] in self.ahu_list:
+                    self.equip_id_topic_name_map[_d["equipRef"]] = _d["topic_name"]
                     try:
                         self.equip_id_device_name_map[_d["equipRef"]] = \
                             self.get_object_name_from_topic(_d["topic_name"],
@@ -80,9 +91,10 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                         # ignore as some points might not follow the pattern
                         # for topic name. As long as we find a single point
                         # with topic name matching the pattern we will use that
+                        print(f"Ignoring point {_d['topic_name']}")
                         continue
 
-        return self.equip_id_device_id_map[equip_id], self.equip_id_device_name_map[equip_id]
+        return self.equip_id_device_id_map.get(equip_id), self.equip_id_device_name_map.get(equip_id)
 
     # To be overridden by subclass if there is custom site specific parsing logic
     def get_object_name_from_topic(self, topic_name, equip_type):
@@ -107,10 +119,20 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                                                                 equip_type)
         driver = copy.deepcopy(self.config_template)
         nf_query_format = driver["driver_config"]["query"]
-        nf_query = nf_query_format.format(device_id=device_id,
-                                          obj_name=device_name)
-        driver["driver_config"]["query"] = nf_query
-        return driver
+        if "{device_id}" in nf_query_format and device_id is None or \
+            "{obj_name}" in nf_query_format and device_name is None:
+            if not self.unmapped_device_details.get(equip_id):
+                self.unmapped_device_details[equip_id] = dict()
+            self.unmapped_device_details[equip_id]["type"] = equip_type
+            self.unmapped_device_details[equip_id]["topic_name"] = self.equip_id_topic_name_map[equip_id]
+            self.unmapped_device_details[equip_id]["error"] = "Unable to parse any of the point topic names for " \
+                                                              "nf device id and/or nf object name"
+            return None
+        else:
+            nf_query = nf_query_format.format(device_id=device_id,
+                                              obj_name=device_name)
+            driver["driver_config"]["query"] = nf_query
+            return driver
 
     def get_name_from_id(self, id):
         name = id.split(".")[-1]
