@@ -56,7 +56,6 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
         if len(ahu_list) > len(result):  # There were ahus without vavs. Add those to result
             for a in set(ahu_list) - set([x[0] for x in result]):
                 result.append((a, []))
-                print(f"Appending {a} to result")
 
         # 3. query for vavs without ahus
         query = f"SELECT tags #>>'{{id}}' \
@@ -88,7 +87,6 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
             if equip_type == "vav" and equip_id in self.unmapped_device_details:
                 # grab the topic_name to shed some light into ahu mapping
                 self.unmapped_device_details[equip_id]["topic_name"] = topic_name
-                print(f"Added {equip_id}  {topic_name} to unmapped_device_details")
             object_name = self.get_object_name_from_topic(topic_name,
                                                           equip_type)
             return topic_name, device_id, object_name
