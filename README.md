@@ -75,11 +75,14 @@ Below is an example configuration for  IntellimationDriverConfigGenerator where 
                 "point_service": "localhost:8080",
                 "bacnet_service": "localhost:8080",
                 "priority": 14,
+                
+                # if device id is unique, use the below nf query format
+                #"query": "@period:[1, +inf]  @attr_device_id:[{device_id},{device_id}]",
+
                 # query format when device id is not unique and both device id and obj_name are required to uniquely
                 # identify a device
-                # if device id is unique, we can query with device id alone, for such sites remove
-                # "@attr_prop_object_name: {obj_name}" from the value of below parameter
-                "query": "@period:[1, +inf] @attr_device_id:[{device_id},{device_id}] ",
+                "query": "@period:[1, +inf] @attr_device_id:[{device_id},{device_id}] @attr_prop_object_name: {obj_name}",
+
                 "topic_name_format": "object_name:{prop_object_name}"
               },
               "interval": 60

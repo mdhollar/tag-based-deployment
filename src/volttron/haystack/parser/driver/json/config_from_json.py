@@ -78,7 +78,6 @@ class JsonDriverConfigGenerator(DriverConfigGenerator):
                     if _d["equipRef"] in self.unmapped_device_details:
                         # grab the topic_name to shed some light into ahu mapping
                         self.unmapped_device_details[_d["equipRef"]]["topic_name"] = _d["topic_name"]
-                        print(f"Added {_d['equipRef']} to unmapped_device_details")
                 elif _d["equipRef"] in self.ahu_list:
                     self.equip_id_topic_name_map[_d["equipRef"]] = _d["topic_name"]
                     try:
