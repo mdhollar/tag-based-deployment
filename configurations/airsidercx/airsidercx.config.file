@@ -7,28 +7,33 @@
      # Make sure this site_id or campus&building information matches what is used for platform.driver
      "site_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs",
      # optional. if not provided will be derived from site_id.split('.')[-2]
-     #"campus": "dcps",
+     #"campus": "campus1",
      # optional. if not provided will be derived from site_id.split('.')[-1]
-     #"building": "anacostia_hs",
+     #"building": "building1",
 
      # metadata value to indentity the specific points and hence its name in this setup
      "point_meta_map": {
             # fan_status or fan_speedcmd one of the two should be available for airsidercx
             "fan_status": "SaFanCmd",
+            "fan_speedcmd": "SaFanSpdCmd",
+
             "zone_reheat": "RhtVlvCmd",
+
             # will raise warning message if no point of this type - zone_damper - is found
             "zone_damper": "vavDmpPos",
+
             # will raise warning message if no point of this type is found
             "duct_stcpr": "SaPress",
+
             "duct_stcpr_stpt": "SaPressSp",
             "sa_temp": "SaTemp",
-            "fan_speedcmd": "SaFanSpdCmd",
             "sat_stpt": "SaTempSp"
         },
      # The field that contains the above point metadata
      "point_meta_field": "miniDis",
 
-     #"output_dir":"airsidercx_configs_from_json",
+     # optional output dir. relative path is relative to directory from which config generator is run
+     #"output_dir":"airsidercx_configs_out",
 
      "config_template": {
         "analysis_name": "AirsideAIRCx",
