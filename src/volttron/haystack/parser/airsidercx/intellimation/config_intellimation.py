@@ -33,7 +33,7 @@ class IntellimationAirsideRCxConfigGenerator(AirsideRCxConfigGenerator):
         # # AirsideRCx point name to metadata(miniDis/Dis field) map
         # self.point_metadata_map = {
         #     "fan_status": "SaFanCmd", #ahu
-        #     "zone_reheat": "RhtVlvPos" or "ElecRht1", or "RhtVlvCmd"# "ElecRht2"??? vav
+        #     "zone_reheat": "RhtVlvPos" or "ElecRht1", or "RhtVlvCmd"# "ElecRht2"???
         #     "zone_damper": "DmpCmd", or "vavDmpPos" #vav
         #     "duct_stcpr": "SaPress", #ahu
         #     "duct_stcpr_stpt": "SaPressSp", #ahu
