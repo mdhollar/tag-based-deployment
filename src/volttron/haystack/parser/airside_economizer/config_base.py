@@ -97,7 +97,7 @@ class AirsideEconomizerConfigGenerator:
                 json.dump(self.unmapped_device_details, outfile, indent=4)
 
             sys.stderr.write(f"\nUnable to generate configurations for all AHUs. "
-                             f"Please see {err_file} for details")
+                             f"Please see {err_file} for details\n")
             sys.exit(1)
         else:
             sys.exit(0)
