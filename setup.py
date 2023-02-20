@@ -20,6 +20,8 @@ setup(
             'config-gen-json.driver=volttron.haystack.parser.driver.json.config_from_json:main',
             'config-gen-db.airsidercx=volttron.haystack.parser.airsidercx.intellimation.config_intellimation:main',
             'config-gen-json.airsidercx=volttron.haystack.parser.airsidercx.json.config_from_json:main',
+            'config-gen-db.airsideeconomizer=volttron.haystack.parser.airside_economizer.intellimation.config_intellimation:main',
+            'config-gen-json.airsideeconomizer=volttron.haystack.parser.airside_economizer.json.config_from_json:main',
         ]
     }
 )
