@@ -3,6 +3,7 @@ Currently there is config generator for
 
 1. Platform Driver Agent 
 2. AirsideRCx Agent
+3. AirsideEconomizer Agent
 
 # Currently supported device types:
 
@@ -13,6 +14,67 @@ Currently there is config generator for
 
 1. Postgres database that contains haystack tags for equipments, and points.  
 2. Json format files - one for equipment tags and one for point tags
+
+# Running config generators
+1. Clone source code:
+   ```
+   git clone https://github.com/schandrika/intellimation_tcf
+   cd intellimation_tcf
+   ```
+2. Install virtual environment
+   You can install these parsers either on system python (for example, when using docker containers exclusively for this) or 
+   install in a virtual environment when you are using a environment shared with other projects. 
+   Creating virtual environment is highly recommended.
+   To create a virtual environment and activate it for use run the command in the root directory of this project
+   ```
+   python3 -m venv ./.venv
+   source .venv/bin/activate
+   ```
+3. Install parsers
+   ```
+   python setup.py install
+   ```
+4. If your haystack tags are stored in postgresql database, you need to install python postgresql connector
+   ```
+   pip install psycopg2
+   ```
+5. Create configuration files for the parser that you want to run. Example configurations are available under configurations directory
+6. Run parser
+   1. To generate platform driver configurations using haystack tags stored in json file
+      ```
+      config-gen-json.driver <path to parser's configuration file>
+      ```
+   2. To generate platform driver configurations using haystack tags stored in postgres db 
+      ```
+      config-gen-db.driver <path to parser's configuration file>
+      ```
+   3. To generate airsidercx agent configurations using haystack tags stored in json file
+      ```
+      config-gen-json.airsidercx <path to parser's configuration file>
+      ```
+   4. To generate airsidercx agent configurations using haystack tags stored in postgres db 
+      ```
+      config-gen-db.airsidercx <path to parser's configuration file>
+      ```
+   5. To generate airside economizer agent configurations using haystack tags stored in json file
+      ```
+      config-gen-json.airsideeconomizer <path to parser's configuration file>
+      ```
+   6. To generate airside economizer agent configurations using haystack tags stored in postgres db 
+      ```
+      config-gen-db.airsideeconomizer <path to parser's configuration file>
+      ```
+   7. Output:
+         1. Generated config files will be in the path provided in configuration. 
+         2. Relative path is relative to the directory from which the command is run. 
+         3. If no output path is provided in configuration file, then by default output gets written to 
+            <execution directory>/<site name>_<config type>_configs
+            - Driver configs will be in <execution directory>/<site name>_driver_configs
+            - AirsideRcx configs will be in <execution directory>/<site name>_airsidercx_configs
+            - AirsideEconomizer configs will be in <execution directory>/<site name>_airside_economizer_configs
+         4. Details of all devices that couldn't be processed will be recorded in a file called 
+            "unmapped_device_details" in the output directory
+   
 
 # Platform Driver configuration generator classes:
 
@@ -32,8 +94,8 @@ The configuration file for this config generator script consists of four types o
    for generating individual device configuration
 4. Optional output directory into which generated configurations are written. If provided code will try create the 
    directory provided and save generated configurations in it. Relative path are relative to path from which the 
-   config generator script is run. If this configuration is not provided, default to "outputs" directory under the 
-   code execution directory
+   config generator script is run. If this configuration is not provided, default to 
+   "<site name>_driver_configs" driver directory under the code execution directory
 
 Below is an example configuration for  IntellimationDriverConfigGenerator where metadata is in a postrgres database
 ```
@@ -98,6 +160,11 @@ If the haystack tags are parsed from a json file, the metadata value in the abov
 ```
 
 Sample configurations can be found [here](configurations/driver)
+## Running driver config generator
+   1. Use the command ```config-gen-json.driver <path to file>``` or ```config-gen-db.driver <path to file>```. 
+   2. One driver config json file is created for each ahu and all the associated vavs
+   3. Vavs not mapped to a AHU get their configurations written to a separate unmapped_vavs.json
+   4. Details of devices that cannot be processed correctly get written to 'unmapped_device_details' file
 
 # AirsideRCx configuration generator classes:
 
@@ -123,10 +190,10 @@ The configuration file for this config generator script consists of four types o
 4. Configuration template - a json object that contains a template airsidercx configuration. 
    ConfiGenerator code inserts the campus, building, AHU, its vavs, and the point name details in this template and 
    generates one AirsideRCx config for each AHU
-5. Optional output directory into which generated configurations are written. If provided code will try create the 
+5. Optional output directory into which generated configurations are written. If provided code will try to create the 
    directory provided and save generated configurations in it. Relative path are relative to path from which the 
-   config generator script is run. If this configuration is not provided, default to "outputs" directory under the 
-   code execution directory
+   config generator script is run. If this configuration is not provided, default to 
+   "<site name>_airsidercx_configs" directory under the code execution directory
 
 Below is an example configuration for  IntellimationAirsideRCxConfigGenerator where metadata is in a postrgres database
 ```
@@ -245,51 +312,130 @@ Sample configurations can be found [here](configurations/airsidercx)
  of "config_template" a valid json string. Commented line are for informational purpose only. None of the commented 
  lines will be in the final generated configuration.
 
-# Running config generators
-1. Clone source code:
-   ```
-   git clone https://github.com/schandrika/intellimation_tcf
-   cd intellimation_tcf
-   ```
-2. Install virtual environment
-   You can install these parsers either on system python (for example, when using docker containers exclusively for this) or 
-   install in a virtual environment when you are using a environment shared with other projects. 
-   Creating virtual environment is highly recommended.
-   To create a virtual environment and activate it for use run the command in the root directory of this project
-   ```
-   python3 -m venv ./.venv
-   source .venv/bin/activate
-   ```
-3. Install parsers
-   ```
-   python setup.py install
-   ```
-4. If your haystack tags are stored in postgresql database, you need to install python postgresql connector
-   ```
-   pip install psycopg2
-   ```
-5. Create configuration files for the parser that you want to run. Example configurations are available under configurations directory
-6. Run parser
-   1. To generate platform driver configurations using haystack tags stored in json file
-      ```
-      config-gen-json.driver <path to parser's configuration file>
-      ```
-   3. To generate platform driver configurations using haystack tags stored in postgres db 
-      ```
-      config-gen-db.driver <path to parser's configuration file>
-      ```
-   5. To generate airsidercx agent configurations using haystack tags stored in json file
-      ```
-      config-gen-json.airsidercx <path to parser's configuration file>
-      ```
-   7. To generate airsidercx agent configurations using haystack tags stored in postgres db 
-      ```
-      config-gen-db.airsidercx <path to parser's configuration file>
-      ```
-   Output files will be the path provided in configuration. If no output path is provided in configuration file, then 
-   by default output gets written to <current directory>/<building_id>_driver_configs for driver config generator and 
-   <current directory>/<building_id>_airsidercx_configs by airsidercx config generator. 
-   Relative path is relative to the directory from which the command is run. 
+## Running AirsideRCx config generator
+   1. Use the command ```config-gen-json.airsidercx <path to file>``` or ```config-gen-db.airsidercx <path to file>```. 
+   2. One config json file is created for each ahu and all the associated vavs
+   3. For an AHU either fan_status or fan_speedcmd point is mandatory for airsidercx
+   4. If a duct_stcpr or zone_damper point is not found, a warning message is generated
+   5. Details of devices that cannot be processed correctly, and warning messages get written to the 
+      'unmapped_device_details' file
+
+# AirsideEconomizer configuration generator classes:
+
+1. AirsideEconomizerConfigGenerator: Base class that parses the configuration
+2. IntellimationAirsideEconomizerConfigGenerator: Derives from AirsideEconomizerConfigGenerator and reads haystack tags 
+   from Intellimation postgres database and generates a AirsideEconomizer agent configuration for each AHU 
+3. JsonAirsideEconomizerConfigGenerator: Derives from AirsideRCxConfigGenerator and reads haystack tags from two json  
+   files, one for equipment tags and one for point tags and generates a AirsideEconomizer agent configuration for each  
+   AHU
+
+## Configuration for AirsideEconomizerConfigGenerator
+
+The configuration file for this config generator script consists of four types of data
+1. metadata - that gives the details of where the haystack data is stored and how to access it
+2. Optional site, campus and building details that can be used to query data and also generate volttron topic names 
+   prefix for devices
+3. Mandatory point metadata - 
+   1. information on which field contains the point type information. For example, each point's type could be stored in 
+      a haystack "dis" field.
+   2. mapping of agent point type to haystack point type. For example, the point that has "supply_fan_status"  
+      information could have the metadata "SaFanCmd" in "dis" field of the point.
+4. Configuration template - a json object that contains a template airside economizer configuration. 
+   ConfiGenerator code inserts the campus, building, AHU, and the point name details in this template and 
+   generates one AirsideEconomizer agent config for each AHU
+5. Optional output directory into which generated configurations are written. If provided code will try to create the 
+   directory provided and save generated configurations in it. Relative path are relative to path from which the 
+   config generator script is run. If this configuration is not provided, default to 
+   "<site name>_airside_economizer_configs" directory under the code execution directory
+
+Below is an example configuration for  IntellimationAirsideRCxConfigGenerator where metadata is in a postrgres database
+```
+  {
+     "metadata": {
+        "connection_params": {
+                "dbname": "intellimation",
+                "host": "127.0.0.1",
+                "port": 5432,
+                "user": "postgres",
+                "password": "volttron"
+            },
+        "equip_table": "equipment",
+        "point_table": "points"
+        },
+     "site_id": "r:intellimation.dc_dgs.dcps.brookland_ms",
+     # optional. if not provided will be derived from site_id.split('.')[-2]
+     #"campus": "dcps",
+     # optional. if not provided will be derived from site_id.split('.')[-1]
+     #"building": "brookland_ms",
+
+     # metadata value to indentity the specific points and hence its name in this setup
+     "point_meta_map": {
+            "fan_status": "s:SaFanCmd",
+            "zone_reheat": "s:RhtVlvPos",
+            "zone_damper": "s:DmpCmd",
+            "duct_stcpr": "s:SaPress",
+            "duct_stcpr_stpt": "s:SaPressSp",
+            "sa_temp": "s:SaTemp",
+            "fan_speedcmd": "s:SaFanSpdCmd",
+            "sat_stpt": "s:SaTempSp"
+        },
+     # The field that contains the above point metadata
+     "point_meta_field": "dis",
+
+     "output_dir":"output/brookland_aircx_configs",
+     "config_template": {
+        "device": {
+
+        },
+        "analysis_name": "Economizer_AIRCx",
+        "actuation_mode": "passive",
+        "arguments": {
+            "point_mapping": {
+
+            },
+            "device_type": "ahu",
+            "data_window": 30,
+            "no_required_data": 10,
+            "open_damper_time": 0,
+            "low_supply_fan_threshold": 20.0,
+            "mat_low_threshold": 50.0,
+            "mat_high_threshold": 90.0,
+            "oat_low_threshold": 30.0,
+            "oat_high_threshold": 100.0,
+            "rat_low_threshold": 50.0,
+            "rat_high_threshold": 90.0,
+            "temp_difference_threshold": 4.0,
+            "open_damper_threshold": 90.0,
+            "oaf_temperature_threshold": 4.0,
+            "cooling_enabled_threshold": 5.0,
+            "minimum_damper_setpoint": 10.0,
+            "desired_oaf": 10.0,
+            "rated_cfm": 1000.0,
+            "eer": 10.0,
+            "economizer_type": "DDB",
+            "temp_band": 1.0
+        }
+     }
+ }
+
+```
+If the haystack tags are parsed from a json file, the metadata value in the above configuration can be changed to
+```
+"metadata": {
+        "equip_json": "/path/to/json/Sitename_EQUIP_haystack.json",
+        "points_json": "/path/to/json/Sitename_POINTS_haystack.json"
+        }
+```
+Sample configurations can be found [here](configurations/airside_economizer)
+
+
+## Running AirsideEconomizer config generator
+   1. Use the command ```config-gen-json.airsideeconomizer <path to file>``` or ```config-gen-db.airsideeconomizer <path to file>```. 
+   2. One config json file is created for each ahu
+   3. All points specified under point mapping are mandatory for AirsideEconomizer
+   4. Details of devices that cannot be processed correctly, and warning messages get written to the 
+      'unmapped_device_details' file
+
 
 # Extending config generators
 
