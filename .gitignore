@@ -2,6 +2,6 @@
 /.venv/
 /build/
 /dist/
-/src/intellimation_tcf.egg-info/
+/config_generators/src/intellimation_tcf.egg-info/
 __pycache__
 *.pyc
