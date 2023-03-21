@@ -4,11 +4,11 @@ from setuptools import find_packages
 for package in find_packages():
     print(package)
 setup(
-    name='intellimation_tcf',
+    name='tag-based-deployment',
     version='0.1',
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    url='https://github.com/schandrika/intellimation_tcf',
+    url='https://github.com/volttron/tag-based-deployment',
     license='',
     author='volttron',
     author_email='chandrika@pnnl.gov',
