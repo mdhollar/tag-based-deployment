@@ -1,0 +1,105 @@
+ {
+     "metadata": {
+        "equip_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_equip_haystack.json",
+        "points_json": "/home/volttron/git/intellimation/intellimation_tcf/json/anacostia_hs_points_haystack.json"
+        },
+     "site_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs",
+
+     # optional. if not provided will be derived from site_id.split('.')[-2]
+     #"campus": "dcps",
+
+     # optional. if not provided will be derived from site_id.split('.')[-1]
+     #"building": "anacostia_hs",
+
+     # optional device name of whole building electric meter.
+     # this should match the device name used by driver so that topic names match.
+     # i.e. devices/<campus>/<building>/<building_power_meter> should be the topic prefix for the driver data
+     #
+     # haystack tag "siteMeter" is used to identify power meter. If no building_power_meter is provided in this config
+     # power meter name is derived from id attribute of device with haystack tag "siteMeter".
+     #"building_power_meter": ""
+
+     # metadata value to identify the specific points and hence its name in this setup
+     "point_meta_map": {
+            "WholeBuildingPower": "Mtr_kWh",
+            "ZoneCoolingTemperatureSetPoint":  "ZNTemp",
+            "MinimumAirFlow":"MinAirFlowSp",
+            "ZoneAirFlowSetpoint": "MaxAirFlowSP",
+            "ZoneAirFlow": "MaxAirFlowSP",
+            "MaxAirFlow": "MaxAirFlowSP",
+            "ZoneTemperature": "SaTemp"
+        },
+
+     # The field that contains the above point metadata
+     "point_meta_field": "miniDis",
+
+     # Optional directory where all generated configs should go
+     #"output_dir":"ilc_configs_from_config1",
+
+     "config_template": {
+        "ilc_config":{
+            "demand_limit": "",
+            "simulation_running": true,
+            "curtailment_time": 20,
+            "curtailment_confirm": 5,
+            "curtailment_break": 20,
+            "average_building_power_window": 15,
+            "stagger_release": true,
+            "stagger_off_time": false
+        },
+        "control_config":{
+            "device_topic": "",
+            "curtail_settings": {
+                "load": "",
+                "control_method": "offset",
+                "offset": 2.0,
+                "minimum": 70.0,
+                "maximum": 76.0,
+                # only one curtail setting and one point per curtail setting?
+                "point": "ZoneCoolingTemperatureSetPoint"
+            },
+            "device_status": {
+                # More than one curtail possible?
+                "curtail": {
+                    "device_status_args": ["MinimumAirFlow", "ZoneAirFlowSetpoint"],
+                    "condition": ["ZoneAirFlowSetpoint>MinimumAirFlow"]
+                }
+            }
+        },
+        "criteria_config":{
+            "room_type": {
+                "map_key": "Office",
+                "operation_type": "mapper",
+                "dict_name": "zone_type"
+            },
+            "available_zone_airflow_ratio": {
+                    "operation_type": "formula",
+                    "operation": "(ZoneAirFlow/MinimumAirFlow) - 1",
+                    "minimum": 0.0,
+                    "maximum": 10.0,
+                    "operation_args": ["MinimumAirFlow, ZoneAirFlow"]
+                    },
+            "box_size": {
+                    "operation_type": "formula",
+                    "operation": "MaxAirFlow/10",
+                    "minimum": 0.0,
+                    "maximum": 100.0,
+                    "operation_args": ["MaxAirFlow"]
+                },
+            "zonetemperature_setpoint": {
+                    "operation": "1/(ZoneTemperature - ZoneCoolingTemperatureSetPoint)",
+                    "operation_type": "formula",
+                    "operation_args": {
+                        "always": [
+                            "ZoneTemperature"
+                        ],
+                        "nc": [
+                            "ZoneCoolingTemperatureSetPoint"
+                        ],
+                        "minimum": 0.0,
+                        "maximum": 10.0
+                    }
+            }
+        }
+    }
+ }
