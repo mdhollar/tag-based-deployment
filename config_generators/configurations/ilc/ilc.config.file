@@ -16,18 +16,20 @@
      # i.e. devices/<campus>/<building>/<building_power_meter> should be the topic prefix for the driver data
      #
      # haystack tag "siteMeter" is used to identify power meter. If no building_power_meter is provided in this config
-     # power meter name is derived from id attribute of device with haystack tag "siteMeter".
+     # power meter name is derived from id attribute of device and used as building power meter name
      #"building_power_meter": ""
 
      # metadata value to identify the specific points and hence its name in this setup
+     # Should include all points used in control and criteria configs.
      "point_meta_map": {
             "WholeBuildingPower": "Mtr_kWh",
-            "ZoneCoolingTemperatureSetPoint":  "ZNTemp",
+            "ZoneCoolingTemperatureSetPoint":  "EffZnTempSp",
             "MinimumAirFlow":"MinAirFlowSp",
-            "ZoneAirFlowSetpoint": "MaxAirFlowSP",
-            "ZoneAirFlow": "MaxAirFlowSP",
+            #  "ZoneAirFlowSetpoint": "SaFlow", # Not used for anacostia. Derived as ZoneAirFlow*MaxAirFlow/100
+            "ZoneAirFlow": "SaFlow",
             "MaxAirFlow": "MaxAirFlowSP",
-            "ZoneTemperature": "SaTemp"
+            "ZoneTemperature": "ZNTemp",
+            "OccupancyCommand": "Occ"
         },
 
      # The field that contains the above point metadata
@@ -38,11 +40,10 @@
 
      "config_template": {
         "ilc_config":{
-            "demand_limit": "",
-            "simulation_running": true,
+            "demand_limit": "TRIGGER",
+            "simulation_running": false,
             "curtailment_time": 20,
             "curtailment_confirm": 5,
-            "curtailment_break": 20,
             "average_building_power_window": 15,
             "stagger_release": true,
             "stagger_off_time": false
@@ -50,7 +51,7 @@
         "control_config":{
             "device_topic": "",
             "curtail_settings": {
-                "load": "",
+                "load": "0.5",
                 "control_method": "offset",
                 "offset": 2.0,
                 "minimum": 70.0,
@@ -61,8 +62,8 @@
             "device_status": {
                 # More than one curtail possible?
                 "curtail": {
-                    "device_status_args": ["MinimumAirFlow", "ZoneAirFlowSetpoint"],
-                    "condition": ["ZoneAirFlowSetpoint>MinimumAirFlow"]
+                    "device_status_args": ["MinimumAirFlow", "ZoneAirFlow", "MaxAirFlow", "OccupancyCommand"],
+                    "condition": ["(ZoneAirFlow*MaxAirFlow/100>MinimumAirFlow) & (Eq(OccupancyCommand, 0))"]
                 }
             }
         },

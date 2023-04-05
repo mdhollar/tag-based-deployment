@@ -75,7 +75,7 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
                     interested_point_types = [self.building_power_point_type,]
                     type = "building power"
                 elif equip_ref in self.vav_dict:
-                    interested_point_types = self.vav_point_types
+                    interested_point_types = self.point_types_vav
                     type = "vav"
                 else:
                     continue

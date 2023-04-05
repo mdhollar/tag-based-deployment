@@ -45,7 +45,7 @@ class ILCConfigGenerator:
         self.building_power_point_type = self.point_meta_map["WholeBuildingPower"]
 
         self.volttron_point_types_vav = [x for x in self.point_meta_map if x != "WholeBuildingPower"]
-        self.vav_point_types = [self.point_meta_map[x] for x in self.volttron_point_types_vav]
+        self.point_types_vav = [self.point_meta_map[x] for x in self.volttron_point_types_vav]
         # Initialize point mapping for ilc config
         self.point_mapping = {x: [] for x in self.point_meta_map.keys()}
 
@@ -152,8 +152,6 @@ class ILCConfigGenerator:
 
     def generate_control_config(self):
 
-        # subset of volttron point types that control config is interested in
-        volttron_point_types_vav = ["MinimumAirFlow", "ZoneAirFlowSetpoint", "ZoneCoolingTemperatureSetPoint"]
         control_config = dict()
 
         for vav_id in self.vav_dict:
@@ -168,7 +166,7 @@ class ILCConfigGenerator:
             config["device_topic"] = self.topic_prefix + vav_topic
             point_mapping = dict()
             # get vav point name
-            for volttron_point_type in volttron_point_types_vav:
+            for volttron_point_type in self.volttron_point_types_vav:
                 point_name = self.get_point_name(vav_id, "vav", volttron_point_type)
                 if point_name:
                     point_mapping[volttron_point_type] = point_name
@@ -176,7 +174,9 @@ class ILCConfigGenerator:
                     if not self.unmapped_device_details.get(vav_id):
                         self.unmapped_device_details[vav_id] = {
                            "type": "vav",
-                           "error": f"Unable to find point of type {volttron_point_type}/{self.point_mapping[volttron_point_type]}"
+                           "error": f"Unable to find point of type {volttron_point_type} "
+                                    f"using metadata field {self.point_meta_field} and "
+                                    f"configured point mapping {self.point_meta_map[volttron_point_type]}"
                         }
                     skip_vav = True
 
@@ -196,7 +196,6 @@ class ILCConfigGenerator:
             volttron_point_list.sort(key=len)
 
             v_conditions = config["device_status"]["curtail"]["condition"]
-            print(volttron_point_list)
 
             for condition in v_conditions:
                 for point in volttron_point_list:
@@ -214,14 +213,9 @@ class ILCConfigGenerator:
                 json.dump(control_config, outfile, indent=4)
 
     def generate_criteria_config(self):
-
-        # subset of volttron point types that control config is interested in
-        volttron_point_list = ["MinimumAirFlow", "MaxAirFlow", "ZoneCoolingTemperatureSetPoint",
-                                "ZoneTemperature", "ZoneAirFlow"]
-
         # sort the list of point before doing find and replace of volttron point name with actual point names
         # so that we avoid matching substrings. For example find and replace ZoneAirFlowSetpoint before ZoneAirFlow
-        volttron_point_list.sort(key=len)
+        self.volttron_point_types_vav.sort(key=len)
 
         criteria_config = dict()
 
@@ -238,11 +232,12 @@ class ILCConfigGenerator:
             curtail_config["device_topic"] = self.topic_prefix + vav_topic
             point_mapping = dict()
             # get vav point name
-            for volttron_point_type in volttron_point_list:
+            for volttron_point_type in self.volttron_point_types_vav:
                 point_name = self.get_point_name(vav_id, "vav", volttron_point_type)
                 if point_name:
                     point_mapping[volttron_point_type] = point_name
                 else:
+                    skip_vav = True
                     if not self.unmapped_device_details.get(vav_id):
                         self.unmapped_device_details[vav_id] = {
                            "type": "vav",
@@ -250,7 +245,6 @@ class ILCConfigGenerator:
                                     f"type {volttron_point_type} using metadata field {self.point_meta_field} and "
                                     f"configured point mapping {self.point_meta_map[volttron_point_type]}"
                         }
-                    skip_vav = True
 
             if skip_vav:
                 # some points are missing, details in umapped_device_details skip vav and move to next
@@ -265,32 +259,33 @@ class ILCConfigGenerator:
                 # Replace in "operation"
                 value_dict["operation"] = self.replace_point_names(value_dict["operation"],
                                                                    point_mapping,
-                                                                   volttron_point_list)
+                                                                   self.volttron_point_types_vav)
 
                 # Replace in "operation_args"
                 if isinstance(value_dict["operation_args"], dict):
                     value_dict["operation_args"]["always"] = self.replace_point_names(
                         value_dict["operation_args"]["always"],
                         point_mapping,
-                        volttron_point_list)
+                        self.volttron_point_types_vav)
                     value_dict["operation_args"]["nc"] = self.replace_point_names(
                         value_dict["operation_args"]["nc"],
                         point_mapping,
-                        volttron_point_list)
+                        self.volttron_point_types_vav)
                 else:
                     # it's a list
                     value_dict["operation_args"] = self.replace_point_names(
                         value_dict["operation_args"],
                         point_mapping,
-                        volttron_point_list)
+                        self.volttron_point_types_vav)
 
             criteria_config[vav_topic] = {vav: curtail_config}
 
         if criteria_config:
-            with open(f"{self.output_dir}/criteria.config", 'w') as outfile:
+            with open(f"{self.output_dir}/vav_criteria.config", 'w') as outfile:
                 json.dump(criteria_config, outfile, indent=4)
 
-    def replace_point_names(self, search_obj, point_mapping, volttron_point_list):
+    @staticmethod
+    def replace_point_names(search_obj, point_mapping, volttron_point_list):
         if isinstance(search_obj, str):
             for point in volttron_point_list:
                 search_obj = search_obj.replace(point, point_mapping[point])
