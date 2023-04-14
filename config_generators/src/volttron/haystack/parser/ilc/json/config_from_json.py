@@ -29,6 +29,9 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
         except Exception:
             raise
 
+        # all vav equip ids and its corresponding ahu ids
+        self.vav_dict = dict()
+
     def _populate_equip_details(self):
         """
         Loop through equip json once and grab interested device ids so rest of the code need not loop through it again
@@ -39,17 +42,21 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
             if self.power_meter_tag in _d:  # if tagged as whole building power meter
                 self.power_meter_id = _d['id']
             elif "vav" in _d: # if it is tagged as vav, get vav and ahu it is associated with
-                # TODO should vav without ahu be included
                 self.vav_dict[_d["id"]] = _d.get("ahuRef", "")
 
-    def get_building_power_point(self):
+    def get_building_power_meter(self):
         if not self.power_meter_id:
             self._populate_equip_details()
+            return self.power_meter_id
+
+    def get_building_power_point(self):
         if self.power_meter_id:
             return self.get_point_name(self.power_meter_id, "power_meter", "WholeBuildingPower")
         else:
             return ""
 
+    def get_vavs_with_ahuref(self):
+        return self.vav_dict
 
     # Should be overridden for different sites if parsing logic is different
     # Parsing logic could also depend on equip type

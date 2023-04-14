@@ -36,8 +36,6 @@ class ILCConfigGenerator:
         self.power_meter_name = self.config_dict.get("building_power_meter", "")
 
         self.power_meter_id = None
-        # all vav equip ids and its corresponding ahu ids
-        self.vav_dict = dict()
 
         self.point_meta_map = self.config_dict.get("point_meta_map")
         self.point_meta_field = self.config_dict.get("point_meta_field",
@@ -127,7 +125,7 @@ class ILCConfigGenerator:
             sys.exit(0)
 
     def generate_ilc_config(self):
-
+        self.power_meter_id = self.get_building_power_meter()
         building_power_point = self.get_building_power_point()
 
         # Success case
@@ -154,11 +152,16 @@ class ILCConfigGenerator:
 
         control_config = dict()
 
-        for vav_id in self.vav_dict:
+        vav_details = self.get_vavs_with_ahuref()
+        if isinstance(vav_details, dict):
+            iterator = vav_details.items()
+        else:
+            iterator = vav_details
+
+        for vav_id, ahu_id in iterator:
             skip_vav = False
             config = copy.deepcopy(self.control_template)
             vav = self.get_name_from_id(vav_id)
-            ahu_id = self.vav_dict[vav_id]
             if ahu_id:
                 vav_topic = self.get_name_from_id(ahu_id) + "/" + vav
             else:
@@ -219,12 +222,17 @@ class ILCConfigGenerator:
 
         criteria_config = dict()
 
-        for vav_id in self.vav_dict:
+        vav_details = self.get_vavs_with_ahuref()
+        if isinstance(vav_details, dict):
+            iterator = vav_details.items()
+        else:
+            iterator = vav_details
+
+        for vav_id, ahu_id in iterator:
             skip_vav = False
             curtail_config = {"device_topic": ""}
             curtail_config.update(copy.deepcopy(self.criteria_template))
             vav = self.get_name_from_id(vav_id)
-            ahu_id = self.vav_dict[vav_id]
             if ahu_id:
                 vav_topic = self.get_name_from_id(ahu_id) + "/" + vav
             else:
@@ -300,6 +308,10 @@ class ILCConfigGenerator:
             return new_list
 
     @abstractmethod
+    def get_building_power_meter(self):
+        pass
+
+    @abstractmethod
     def get_building_power_point(self):
         pass
 
@@ -312,11 +324,11 @@ class ILCConfigGenerator:
         pass
 
     @abstractmethod
-    def get_ahu_and_vavs(self):
+    def get_vavs_with_ahuref(self):
         """
-        Should return a list of ahu and vav mappings
-        :return: list of tuples with the format [(ahu1, (vav1,vav2..)),...]
-                 or dict mapping ahu with vavs with format
-                 {'ahu1':(vav1,vav2,..), ...}
+        Should return vavs with its corresponding ahu
+        :return: list of tuples with the format [(va1, ahu1), (vav2,ahu1),...]
+                 or dict mapping vav to ahu with format
+                 {'vav1':'ahu1', 'vav2':'ahu1',...}
         """
         pass
