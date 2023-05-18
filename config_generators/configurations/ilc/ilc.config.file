@@ -42,8 +42,8 @@
         "ilc_config":{
             "demand_limit": "TRIGGER",
             "simulation_running": false,
-            "curtailment_time": 20,
-            "curtailment_confirm": 5,
+            "control_time": 20,
+            "control_confirm": 5,
             "average_building_power_window": 15,
             "stagger_release": true,
             "stagger_off_time": false
