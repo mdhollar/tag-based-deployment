@@ -2,8 +2,11 @@ import json
 import os.path
 import sys
 from abc import abstractmethod
-from volttron.haystack.parser.utils import strip_comments
 import copy
+import shutil
+from volttron.haystack.parser.utils import strip_comments
+from volttron.haystack.parser.ilc.utils.validate_pairwise import extract_criteria as pairwise_extract_criteria, \
+    validate_input as pairwise_validate_input, calc_column_sums as pairwise_calc_column_sums
 
 
 class ILCConfigGenerator:
@@ -34,6 +37,8 @@ class ILCConfigGenerator:
         self.topic_prefix = self.topic_prefix + self.building + "/" if self.building else ""
         self.power_meter_tag = 'siteMeter'
         self.power_meter_name = self.config_dict.get("building_power_meter", "")
+        self.configured_power_meter_id = self.config_dict.get("power_meter_id", "")
+        self.configured_power_meter_point_id = self.config_dict.get("power_meter_point_id", "")
 
         self.power_meter_id = None
 
@@ -55,6 +60,17 @@ class ILCConfigGenerator:
         config_template = self.config_dict.get("config_template")
         if not config_template:
             raise ValueError(f"Missing parameter in config:'config_template'")
+
+        self.device_type = config_template.get("device_type")
+        if not self.device_type:
+            raise ValueError("Missing device_type parameter under config_template")
+
+        self.pairwise_path = os.path.join(os.path.dirname(__file__), 'data',
+                                          f"pairwise_criteria_{self.device_type}.json")
+        if not os.path.exists(self.pairwise_path):
+            raise ValueError(f"Given device type is {self.device_type}. But unable to find corresponding "
+                             f"pairwise criteria file {self.pairwise_path}")
+
         self.ilc_template = {
             "campus": self.campus,
             "building": self.building,
@@ -99,6 +115,9 @@ class ILCConfigGenerator:
         """
         Generated all configuration files for ILC agent for a given site
         """
+
+        self.generate_pairwise_config()
+
         error = self.generate_ilc_config()
         if error:
             err_file = f"{self.output_dir}/unmapped_device_details"
@@ -124,9 +143,41 @@ class ILCConfigGenerator:
         else:
             sys.exit(0)
 
+    def generate_pairwise_config(self):
+
+        # Validate pairwise criteria if needed. exit if validation fails
+        if self.config_dict.get("config_template").get("validate_pairwise_criteria"):
+            pairwise_dict = None
+            try:
+                with open(self.pairwise_path, "r") as f:
+                    pairwise_dict = json.loads(strip_comments(f.read()))
+            except Exception as e:
+                raise ValueError(f"Invalid json: pairwise criteria file {self.pairwise_path} failed. Exception {e}")
+
+            criteria_labels, criteria_array = pairwise_extract_criteria(pairwise_dict["curtail"])
+            col_sums = pairwise_calc_column_sums(criteria_array)
+
+            result, ratio = pairwise_validate_input(criteria_array, col_sums)
+            if not result:
+                sys.stderr.write(f"\nValidation of pairwise criteria file {self.pairwise_path} failed.\n"
+                                 f"Computed criteria array:{criteria_array} column sums:{col_sums}\n"
+                                 f"Inconsistency ratio is: {ratio}\n")
+                sys.exit(1)
+
+        # write pairwise criteria file
+        shutil.copy(self.pairwise_path, os.path.join(self.output_dir, f"{self.device_type}_criteria_matrix.json"))
+
     def generate_ilc_config(self):
-        self.power_meter_id = self.get_building_power_meter()
-        building_power_point = self.get_building_power_point()
+        try:
+            self.power_meter_id = self.get_building_power_meter()
+        except ValueError as e:
+            return {"building_power_meter": {"error": f"Unable to locate building power meter: Error: {e}"}}
+
+        try:
+            building_power_point = self.get_building_power_point()
+        except ValueError as e:
+            return {self.power_meter_id: {"error": f"Unable to locate building power point using the metadata "
+                                                   f"{self.building_power_point_type}. {e}"}}
 
         # Success case
         if self.power_meter_id and building_power_point:
@@ -145,8 +196,11 @@ class ILCConfigGenerator:
                        {"error": f"Unable to locate building power meter using the tag '{self.power_meter_tag}' "}}
 
         if not building_power_point:
-            return {self.power_meter_id: {"error": f"Unable to locate building power point using the metadata "
-                                                   f"{self.building_power_point_type}"}}
+            if self.unmapped_device_details:
+                return self.unmapped_device_details
+            else:
+                return {self.power_meter_id: {"error": f"Unable to locate building power point using the metadata "
+                                                       f"{self.building_power_point_type}"}}
 
     def generate_control_config(self):
 
@@ -212,7 +266,7 @@ class ILCConfigGenerator:
             control_config[vav_topic] = {vav: config}
 
         if control_config:
-            with open(f"{self.output_dir}/vav_control.config", 'w') as outfile:
+            with open(f"{self.output_dir}/{self.device_type}_control.config", 'w') as outfile:
                 json.dump(control_config, outfile, indent=4)
 
     def generate_criteria_config(self):
@@ -289,7 +343,7 @@ class ILCConfigGenerator:
             criteria_config[vav_topic] = {vav: curtail_config}
 
         if criteria_config:
-            with open(f"{self.output_dir}/vav_criteria.config", 'w') as outfile:
+            with open(f"{self.output_dir}/{self.device_type}_criteria.config", 'w') as outfile:
                 json.dump(criteria_config, outfile, indent=4)
 
     @staticmethod
