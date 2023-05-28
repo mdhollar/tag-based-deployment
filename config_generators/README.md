@@ -18,8 +18,8 @@ Currently there is config generator for
 # Running config generators
 1. Clone source code:
    ```
-   git clone https://github.com/schandrika/intellimation_tcf
-   cd intellimation_tcf
+   git clone https://github.com/VOLTTRON/tag-based-deployment
+   cd tag-based-deployment
    ```
 2. Install virtual environment
    You can install these parsers either on system python (for example, when using docker containers exclusively for this) or 
@@ -32,6 +32,7 @@ Currently there is config generator for
    ```
 3. Install parsers
    ```
+   cd config_generators
    python setup.py install
    ```
 4. If your haystack tags are stored in postgresql database, you need to install python postgresql connector
