@@ -32,24 +32,42 @@ class IntellimationILCConfigGenerator(ILCConfigGenerator):
         self.vavs_and_ahuref = list()
 
     def get_building_power_meter(self):
-        query = f"SELECT tags->>'id' \
-                  FROM {self.equip_table} \
-                  WHERE tags->>'siteMeter' is NOT NULL AND  tags->>'dis'='s:Electric Meter - Building'"
+        if self.configured_power_meter_id:
+            query = f"SELECT tags->>'id' \
+                      FROM {self.equip_table} \
+                      WHERE tags->>'id' = '{self.configured_power_meter_id}'"
+        else:
+            query = f"SELECT tags->>'id' \
+                                  FROM {self.equip_table} \
+                                  WHERE tags->>'{self.power_meter_tag}' is NOT NULL"
         if self.site_id:
             query = query + f" AND tags->>'siteRef'='{self.site_id}' "
         print(query)
+
         result = self.execute_query(query)
         if result:
-            return result[0][0]
+            if len(result) == 1:
+                return result[0][0]
+            if len(result) > 1 and not self.configured_power_meter_id:
+                raise ValueError(f"More than one equipment found with the tag {self.power_meter_tag}. Please "
+                                 f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                                 f"building power meter")
+            if len(result) > 1 and self.configured_power_meter_id:
+                raise ValueError(f"More than one equipment found with the id {self.configured_power_meter_id}. Please "
+                                 f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                                 f"building power meter")
+        return ""
 
     def get_building_power_point(self):
-        query = f"SELECT tags->>'id' \
-                  FROM {self.point_table} \
-                  WHERE tags->>'equipRef'='{self.power_meter_id}'"
-        print(query)
-        result = self.execute_query(query)
-        if result:
-            return result[0][0]
+        point_name = ""
+        if self.power_meter_id:
+            point_name = self.get_point_name(self.power_meter_id, "power_meter", "WholeBuildingPower")
+
+        if self.unmapped_device_details.get(self.power_meter_id):
+            # Could have been more than 1 point name.
+            return ""
+        else:
+            return point_name
 
     def get_vavs_with_ahuref(self):
         if not self.vavs_and_ahuref:
@@ -63,7 +81,7 @@ class IntellimationILCConfigGenerator(ILCConfigGenerator):
             self.vavs_and_ahuref = self.execute_query(query)
         return self.vavs_and_ahuref
 
-    def get_topic_by_point_type(self, equip_id, point_key):
+    def get_topic_by_point_type(self, equip_id, equip_type, point_key):
         point_type = self.point_meta_map[point_key]
         query = f"SELECT topic_name " \
                 f"FROM {self.point_table} " \
@@ -71,20 +89,24 @@ class IntellimationILCConfigGenerator(ILCConfigGenerator):
                 f"AND tags->>'{self.point_meta_field}'=" \
                 f"'{point_type}'"
         result = self.execute_query(query)
+        topic = ""
         if result:
             # for each device there should be only be one point that matches
             # the point type.
-            topic = result[0][0]
-            if not self.equip_id_point_topic_map.get(equip_id):
-                self.equip_id_point_topic_map[equip_id] = dict()
-            self.equip_id_point_topic_map[equip_id][point_type] = topic
-            return topic
-        else:
-            # raise ValueError(
-            #     f"No point name with "
-            #     f"tag->>'{self.point_meta_field}'="
-            #     f"'{self.point_meta_map[point_key]}' found for {equip_id}")
-            return ""
+            if len(result) == 1:
+                topic = result[0][0]
+                if not self.equip_id_point_topic_map.get(equip_id):
+                    self.equip_id_point_topic_map[equip_id] = dict()
+                self.equip_id_point_topic_map[equip_id][point_type] = topic
+            else:
+                # more than one point with same point type
+                self.unmapped_device_details[equip_id] = {
+                    "type": equip_type,
+                    "error": f"More than one point have the same "
+                             f"configured metadata: {point_type} in the "
+                             f"metadata field {self.point_meta_field}",
+                    "topic_name": [x[0] for x in result]}
+        return topic
 
     # Should be overridden for different sites if parsing logic is different
     # Parsing logic could also depend on equip type
@@ -105,7 +127,7 @@ class IntellimationILCConfigGenerator(ILCConfigGenerator):
                 cursor.close()
 
     def get_point_name(self, equip_id, equip_type, point_key):
-        topic = self.get_topic_by_point_type(equip_id, point_key)
+        topic = self.get_topic_by_point_type(equip_id, equip_type, point_key)
         point_name = self.get_point_name_from_topic(topic)
         return point_name
 

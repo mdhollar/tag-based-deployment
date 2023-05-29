@@ -39,9 +39,25 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
         """
         rows = self.equip_json['rows']
         for _d in rows:
-            if self.power_meter_tag in _d:  # if tagged as whole building power meter
-                self.power_meter_id = _d['id']
-            elif "vav" in _d: # if it is tagged as vav, get vav and ahu it is associated with
+            if self.configured_power_meter_id:
+                if _d['id'] == self.configured_power_meter_id:
+                    if self.power_meter_id is None:
+                        self.power_meter_id = _d['id']
+                    else:
+                        raise ValueError(
+                            f"More than one equipment found with the id {self.configured_power_meter_id}. Please "
+                            f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                            f"building power meter")
+            else:
+                if self.power_meter_tag in _d:  # if tagged as whole building power meter
+                    if self.power_meter_id is None:
+                        self.power_meter_id = _d['id']
+                    else:
+                        raise ValueError(f"More than one equipment found with the tag {self.power_meter_tag}. Please "
+                                         f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                                         f"building power meter")
+
+            if "vav" in _d:  # if it is tagged as vav, get vav and ahu it is associated with
                 self.vav_dict[_d["id"]] = _d.get("ahuRef", "")
 
     def get_building_power_meter(self):
@@ -50,10 +66,16 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
             return self.power_meter_id
 
     def get_building_power_point(self):
+
+        point_name = ""
         if self.power_meter_id:
-            return self.get_point_name(self.power_meter_id, "power_meter", "WholeBuildingPower")
-        else:
+            point_name = self.get_point_name(self.power_meter_id, "power_meter", "WholeBuildingPower")
+
+        if self.unmapped_device_details.get(self.power_meter_id):
+            # Could have been more than 1 point name.
             return ""
+        else:
+            return point_name
 
     def get_vavs_with_ahuref(self):
         return self.vav_dict
@@ -99,12 +121,16 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
                         self.equip_id_point_map[equip_ref] = dict()
                     point_name = self.get_point_name_from_topic(_d["topic_name"])
                     if point_name:
-                        self.equip_id_point_map[equip_ref][point_type] = point_name
-                    elif point_type == self.point_meta_map["WholeBuildingPower"]:
-                        self.unmapped_device_details[equip_ref] = {
-                                "type": "Power Meter",
-                                "error": "Unable to parse building power point name from topic name",
+                        if self.equip_id_point_map[equip_ref].get(point_type):
+                            # more than one point with same point type
+                            self.unmapped_device_details[equip_ref] = {
+                                "type": type,
+                                "error": f"More than one point have the same "
+                                         f"configured metadata: {point_type} in the "
+                                         f"metadata field {self.point_meta_field}",
                                 "topic_name": _d["topic_name"]}
+                        else:
+                            self.equip_id_point_map[equip_ref][point_type] = point_name
                     else:
                         self.unmapped_device_details[equip_ref] = {
                             "type": type,
@@ -120,6 +146,7 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
     def get_name_from_id(self, id):
         name = id.split(".")[-1]
         return name
+
 
 def main():
     if len(sys.argv) != 2:
