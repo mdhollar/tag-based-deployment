@@ -40,7 +40,14 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
         rows = self.equip_json['rows']
         for _d in rows:
             if self.configured_power_meter_id:
-                self.power_meter_id = self.configured_power_meter_id
+                if _d['id'] == self.configured_power_meter_id:
+                    if self.power_meter_id is None:
+                        self.power_meter_id = _d['id']
+                    else:
+                        raise ValueError(
+                            f"More than one equipment found with the id {self.configured_power_meter_id}. Please "
+                            f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                            f"building power meter")
             else:
                 if self.power_meter_tag in _d:  # if tagged as whole building power meter
                     if self.power_meter_id is None:
@@ -124,11 +131,6 @@ class JsonILCConfigGenerator(ILCConfigGenerator):
                                 "topic_name": _d["topic_name"]}
                         else:
                             self.equip_id_point_map[equip_ref][point_type] = point_name
-                    elif point_type == self.point_meta_map["WholeBuildingPower"]:
-                        self.unmapped_device_details[equip_ref] = {
-                                "type": type,
-                                "error": f"More than one point found for point_type {point_type}",
-                                "topic_name": _d["topic_name"]}
                     else:
                         self.unmapped_device_details[equip_ref] = {
                             "type": type,
