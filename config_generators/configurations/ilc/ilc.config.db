@@ -24,18 +24,13 @@
      #
      # haystack tag "siteMeter" is used to identify power meter. If no building_power_meter is provided in this config
      # power meter name is derived from id attribute of device and used as building power meter name
+
      #"building_power_meter": "",
 
      # optional building power meter id. If there are multiple entities with the tag "siteMeter" then provide the
      # id of the power meter to use for ILC
 
-     # "power_meter_id": "",
-
-     # optional building power meter point id. If there are multiple power meter points with the same point type
-     # i.e. if the point meta map for "WholeBuildingPower" matches multiple points of the power meter, provide
-     # a unique point id to use
-
-     # "power_meter_point_id": "",
+     #"power_meter_id": "r:intellimation.dc_dgs.dcps.brookland_ms.electric_meter_-_building",
 
      # metadata value to identify the specific points and hence its name in this setup
      # Should include all points used in control and criteria configs.
@@ -72,8 +67,8 @@
         "ilc_config":{
             "demand_limit": "TRIGGER",
             "simulation_running": false,
-            "curtailment_time": 20,
-            "curtailment_confirm": 5,
+            "control_time": 20,
+            "control_confirm": 5,
             "average_building_power_window": 15,
             "stagger_release": true,
             "stagger_off_time": false

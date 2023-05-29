@@ -38,7 +38,6 @@ class ILCConfigGenerator:
         self.power_meter_tag = 'siteMeter'
         self.power_meter_name = self.config_dict.get("building_power_meter", "")
         self.configured_power_meter_id = self.config_dict.get("power_meter_id", "")
-        self.configured_power_meter_point_id = self.config_dict.get("power_meter_point_id", "")
 
         self.power_meter_id = None
 
@@ -192,8 +191,11 @@ class ILCConfigGenerator:
 
         #  Error case
         if not self.power_meter_id:
-            return{"building_power_meter":
-                       {"error": f"Unable to locate building power meter using the tag '{self.power_meter_tag}' "}}
+            err = f"Unable to locate building power meter using the tag '{self.power_meter_tag}' "
+            if self.configured_power_meter_id:
+                err = f"Unable to locate building power meter using id '{self.configured_power_meter_id}' "
+
+            return {"building_power_meter": {"error": err}}
 
         if not building_power_point:
             if self.unmapped_device_details:
