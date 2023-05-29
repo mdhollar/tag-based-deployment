@@ -24,7 +24,13 @@
      #
      # haystack tag "siteMeter" is used to identify power meter. If no building_power_meter is provided in this config
      # power meter name is derived from id attribute of device and used as building power meter name
-     #"building_power_meter": ""
+
+     #"building_power_meter": "",
+
+     # optional building power meter id. If there are multiple entities with the tag "siteMeter" then provide the
+     # id of the power meter to use for ILC
+
+     #"power_meter_id": "r:intellimation.dc_dgs.dcps.brookland_ms.electric_meter_-_building",
 
      # metadata value to identify the specific points and hence its name in this setup
      # Should include all points used in control and criteria configs.
@@ -46,15 +52,29 @@
      #"output_dir":"ilc_configs_from_config1",
 
      "config_template": {
+
+        # ###### Pairwise criteria #######
+        # device type determines the pairwise criteria file used.
+        # pairwise_criteria_<device_type>.json file from the data folder will be used for ILC
+        # You can customize this json file for your needs. If you customize this json file, you could also
+        # enable validation for this configuration file
+        # Validation of pairwise_criteria uses ilc/utils/validate_pairwise.py
+
+        "device_type": "vav",
+        "validate_pairwise_criteria": false,
+
+        # ########### ilc config template ########
         "ilc_config":{
             "demand_limit": "TRIGGER",
             "simulation_running": false,
-            "curtailment_time": 20,
-            "curtailment_confirm": 5,
+            "control_time": 20,
+            "control_confirm": 5,
             "average_building_power_window": 15,
             "stagger_release": true,
             "stagger_off_time": false
         },
+
+        # ######### control config template ########
         "control_config":{
             "device_topic": "",
             "curtail_settings": {
@@ -74,6 +94,8 @@
                 }
             }
         },
+
+        # ############ criteria config template #########
         "criteria_config":{
             "room_type": {
                 "map_key": "Office",
