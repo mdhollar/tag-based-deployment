@@ -64,7 +64,7 @@ class ILCConfigGenerator:
         if not self.device_type:
             raise ValueError("Missing device_type parameter under config_template")
 
-        self.pairwise_path = os.path.join(os.path.dirname(__file__), 'data',
+        self.pairwise_path = os.path.join(os.path.dirname(__file__),
                                           f"pairwise_criteria_{self.device_type}.json")
         if not os.path.exists(self.pairwise_path):
             raise ValueError(f"Given device type is {self.device_type}. But unable to find corresponding "
@@ -81,9 +81,9 @@ class ILCConfigGenerator:
             "application_name": "Intelligent Load Control",
             "clusters": [
                 {
-                    "device_control_config": "config://vav_control.config",
-                    "device_criteria_config": "config://vav_criteria.config",
-                    "pairwise_criteria_config": "config://vav_criteria_matrix.json",
+                    "device_control_config": f"config://{self.device_type}_control.config",
+                    "device_criteria_config": f"config://{self.device_type}_criteria.config",
+                    "pairwise_criteria_config": f"config://{self.device_type}_criteria_matrix.json",
                     "cluster_priority": 1.0
                 }
             ]
