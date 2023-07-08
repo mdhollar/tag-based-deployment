@@ -23,7 +23,7 @@
      # optional building power meter id. If there are multiple entities with the tag "siteMeter" then provide the
      # id of the power meter to use for ILC
 
-     #"power_meter_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs.electric_meter_-_building",
+     "power_meter_id": "r:@intellimation.dc_dgs.dcps.anacostia_hs.electric_meter_-_building",
 
      # metadata value to identify the specific points and hence its name in this setup
      # Should include all points used in control and criteria configs.
