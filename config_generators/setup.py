@@ -8,6 +8,10 @@ setup(
     version='0.1',
     packages=find_packages('src'),
     package_dir={'': 'src'},
+    include_package_data=True,
+    package_data={
+        "volttron.haystack.parser.ilc": ["*.json"],
+    },
     url='https://github.com/volttron/tag-based-deployment',
     license='',
     author='volttron',
@@ -22,6 +26,8 @@ setup(
             'config-gen-json.airsidercx=volttron.haystack.parser.airsidercx.json.config_from_json:main',
             'config-gen-db.airsideeconomizer=volttron.haystack.parser.airside_economizer.intellimation.config_intellimation:main',
             'config-gen-json.airsideeconomizer=volttron.haystack.parser.airside_economizer.json.config_from_json:main',
+            'config-gen-db.ilc=volttron.haystack.parser.ilc.intellimation.config_intellimation:main',
+            'config-gen-json.ilc=volttron.haystack.parser.ilc.json.config_from_json:main',
         ]
     }
 )
