@@ -55,7 +55,8 @@ class JsonAirsideEconomizerConfigGenerator(AirsideEconomizerConfigGenerator):
     def get_point_name_from_topic(self, topic, equip_id=None,
                                   equip_type=None):
         point_name_part = topic.split("/")[-1]
-        return re.split(r"[\.|:]", point_name_part)[-1]
+        return point_name_part
+        # return re.split(r"[\.|:]", point_name_part)[-1]
 
     def get_point_name(self, equip_id, equip_type, point_type_meta):
         if not self.equip_id_point_map:
