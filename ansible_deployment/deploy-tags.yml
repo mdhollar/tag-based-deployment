@@ -116,6 +116,10 @@
   import_playbook: volttron.tag_based_deployment.airside_rcx_configs
   when: airside_rcx_generator is defined
 
+- name: Create Economizer RCx Configurations
+  import_playbook: volttron.tag_based_deployment.economizer_rcx_configs
+  when: economizer_rcx_generator is defined
+
 - name: Setup Historian
   hosts: brookland
   roles:

@@ -46,13 +46,13 @@
 - name: Fetch Generator Error Report
   ansible.builtin.fetch:
     dest: "{{ generator_reports_dir }}/{{ inventory_hostname }}/airside_rcx_issues.json"
-    src: "{{ host_configs_dir }}/airside_rcx/unmapped_device_details" # airside_rcx_issues.json
+    src: "{{ host_configs_dir }}/airside_rcx/errors/unmapped_device_details" # airside_rcx_issues.json
     flat: yes
   when: (generator_return_json.rc is defined and generator_return_json.rc == 1) or (generator_return_db.rc is defined and generator_return_db.rc == 1)
 
 - name: Find Generated Files
   ansible.builtin.find:
-    paths: "{{ host_configs_dir }}/airside_rcx"
+    paths: "{{ host_configs_dir }}/airside_rcx/configs"
     excludes: "unmapped_device_details"
   register: airside_rcx_configs
 
@@ -62,6 +62,23 @@
   register: airside_rcx_config_set
   loop: "{{ airside_rcx_configs.files }}"
 
-- name: Install Config Set
-  include_tasks: setup_agents.yml
+- name: Install Airside RCx Config
+  ansible.builtin.shell:
+    cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file configs/airside_rcx"
+
+- name: Setup Agent Installs
+  set_fact:
+    agents_to_install: "{{ 
+    agents_to_install | combine({ 'airside.' + ( item.device.unit | dict2items | map(attribute='key') | first ) : config_dict })
+    }}"
   loop: "{{ airside_rcx_config_set.results | map(attribute='content') | map('b64decode') | map('from_json') }}"
+  vars:
+    config_dict:
+      agent_source: '{{ ansible_env.HOME }}/volttron-pnnl-applications/EnergyEfficiency/AirsideRCxAgent/'
+      agent_state: 'present'
+      agent_enabled: True
+      agent_priority: 50
+      agent_running: true
+      agent_tag: 'rcx'
+      skip_requirements: False
+      force_install: False
