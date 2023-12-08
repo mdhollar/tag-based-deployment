@@ -4,4 +4,4 @@
   roles:
     - volttron.deployment.set_defaults
     - volttron.deployment.ansible_venv
-    - volttron.tag-based-deployment.historian_tunnel
+    - volttron.tag_based_deployment.historian_tunnel

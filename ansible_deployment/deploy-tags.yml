@@ -110,16 +110,17 @@
     #    on_hosts: collectors
 
 - name: Create Normal Driver Configurations
-  import_playbook: volttron.tag-based-deployment.driver_configs
+  import_playbook: volttron.tag_based_deployment.driver_configs
 
 - name: Create Airside RCx Configurations
-  import_playbook: volttron.tag-based-deployment.airside_rcx_configs
+  import_playbook: volttron.tag_based_deployment.airside_rcx_configs
+  when: airside_rcx_generator is defined
 
 - name: Setup Historian
   hosts: brookland
   roles:
     - volttron.deployment.set_defaults
-#    - volttron.tag-based-deployment.historian_tunnel
+#    - volttron.tag_based_deployment.historian_tunnel
   tasks:
     - name: Copy Historian Config
       ansible.builtin.copy:
