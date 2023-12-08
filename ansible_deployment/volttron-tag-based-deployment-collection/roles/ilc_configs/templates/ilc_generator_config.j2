@@ -57,6 +57,11 @@
      # where generated configs should be saved. Code will try to do makedir -p
      ,"output_dir":"{{ ilc_generator.output_dir }}"
 
+     # VIP identity to use when installing configurations.
+     {% if ilc_generator.ilc_agent_vip is defined %}
+     ,"ilc_agent_vip":"{{ ilc_generator.ilc_agent_vip }}"
+     {% endif %}
+
      # Template for ilc configuration
      , "config_template": {% include 'ilc_config.j2' %}
 }
