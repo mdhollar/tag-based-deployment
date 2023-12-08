@@ -120,6 +120,10 @@
   import_playbook: volttron.tag_based_deployment.economizer_rcx_configs
   when: economizer_rcx_generator is defined
 
+- name: Create Intelligent Load Control Configurations
+  import_playbook: volttron.tag_based_deployment.ilc_configs
+  when: ilc_generator is defined
+
 - name: Setup Historian
   hosts: brookland
   roles:
