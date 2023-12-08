@@ -4,4 +4,4 @@
   roles:
     - volttron.deployment.set_defaults
     - volttron.deployment.ansible_venv
-    - volttron.tag-based-deployment.airside_rcx_configs
+    - volttron.tag_based_deployment.airside_rcx_configs
