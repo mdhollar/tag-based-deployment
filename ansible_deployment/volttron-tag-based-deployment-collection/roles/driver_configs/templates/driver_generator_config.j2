@@ -1,20 +1,20 @@
  {
      "metadata": {
-        {% if driver_generator.data_source == "json" %}
+        {% if site_info.data_source == "json" %}
             "equip_json": "{{ host_configs_dir }}/generator_json_sources/{{ driver_generator.json.equipment_file }}",
             "points_json": "{{ host_configs_dir }}/generator_json_sources/{{ driver_generator.json.points_file }}"
         {% endif %}
 
-        {% if driver_generator.data_source == "db" %}
+        {% if site_info.data_source == "db" %}
             "connection_params": {
-                    "dbname": "{{ driver_generator.database.name }}",
-                    "host": "{{ driver_generator.database.host }}",
-                    "port": {{ driver_generator.database.port }},
-                    "user": "{{ driver_generator.database.user }}",
-                    "password": "{{ driver_generator.database.password }}"
+                    "dbname": "{{ tag_data.database.name }}",
+                    "host": "{{ tag_data.database.host }}",
+                    "port": {{ tag_data.database.port }},
+                    "user": "{{ tag_data.database.user }}",
+                    "password": "{{ tag_data.database.password }}"
                 },
-            "equip_table": "{{ driver_generator.database.equipment_table }}",
-            "point_table": "{{ driver_generator.database.point_table }}"
+            "equip_table": "{{ tag_data.database.equipment_table }}",
+            "point_table": "{{ tag_data.database.point_table }}"
         {% endif %}
      },
 
@@ -25,8 +25,8 @@
      "config_template": {% include 'volttron_driver_device_config.j2' %}
 
      # If provided query will be filtered using this condition
-     {% if driver_generator.site_id is defined %}
-        ,"site_id": "{{ driver_generator.site_id }}"
+     {% if site_info.site_id is defined %}
+        ,"site_id": "{{ site_info.site_id }}"
      {% endif %}
 
      # Optional campus. If not provided will be parsed from site_id else will be empty. defaults to empty
