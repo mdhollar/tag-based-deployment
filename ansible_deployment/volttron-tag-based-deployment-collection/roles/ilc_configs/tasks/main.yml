@@ -50,19 +50,6 @@
     flat: yes
   when: (generator_return_json.rc is defined and generator_return_json.rc == 1) or (generator_return_db.rc is defined and generator_return_db.rc == 1)
 
-#- name: Find Generated Files
-#  ansible.builtin.find:
-#    paths: "{{ host_configs_dir }}/ilc/configs"
-#    excludes: "unmapped_device_details"
-#  register: ilc_configs
-#
-#- name: Install ILC Config
-#  ansible.builtin.shell:
-#    cmd: >
-#      echo "{{ item.path }}" | sed s/\'/\"/g |
-#      {{ volttron_venv }}/bin/vctl config store ilc.agent {{ item.path | basename }} "{{ item.path }}"
-#  loop: "{{ ilc_configs.files }}"
-
 # TODO: Remove this once it is possible to perform bulk config updates while volttron is running.
 - name: Shutdown VOLTTRON if Running
   ansible.builtin.systemd:
@@ -83,22 +70,3 @@
   environment:
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
-
-#- name: Install ILC Agent
-#  volttron.deployment.volttron_agent:
-#    volttron_root: "{{ volttron_root }}"
-#    volttron_home: "{{ volttron_home }}"
-#    volttron_venv: "{{ volttron_venv }}"
-#    agent_vip_id: "ilc.agent"
-#    agent_spec: "{{ this_spec }}"
-#  vars:
-#    - this_spec: {
-#                   agent_source: "{{ ansible_env.HOME }}/volttron-pnnl-applications/GridServices/Control/ILCAgent",
-#                   agent_state: 'present',
-#                   agent_enabled: True,
-#                   agent_priority: 50,
-#                   agent_running: true,
-#                   agent_tag: 'ilc',
-#                   skip_requirements: False,
-#                   force_install: False
-#                 }
