@@ -49,6 +49,11 @@
      # where generated configs should be saved. Code will try to do makedir -p
      ,"output_dir":"{{ economizer_rcx_generator.output_dir }}"
 
+     # Prefix to use when creating VIP identity.
+     {% if economizer_rcx_generator.agent_vip_prefix is defined %}
+     ,"agent_vip_prefix":"{{ economizer_rcx_generator.agent_vip_prefix }}"
+     {% endif %}
+
      # Template for economizer_rcx configuration
      ,"config_template": {% include 'economizer_rcx_config.j2' %}
 }
