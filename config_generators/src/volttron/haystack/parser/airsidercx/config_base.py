@@ -80,6 +80,8 @@ class AirsideRCxConfigGenerator:
         self.output_errors = os.path.join(self.output_dir, "errors")
         os.makedirs(self.output_errors, exist_ok=True)
 
+        self.agent_vip_prefix = self.config_dict.get("agent_vip_prefix", "airside")
+
         # Initialize map of haystack id and nf device name
         self.equip_id_point_map = dict()
         self.equip_id_device_id_map = dict()
@@ -108,7 +110,7 @@ class AirsideRCxConfigGenerator:
             config_file_name = os.path.abspath(f"{self.output_configs}/{ahu_name}.json")
             with open(config_file_name, 'w') as f:
                 json.dump(result_dict, f, indent=4)
-            config_metadata["airsidercx-" + ahu_name] = [{"config": config_file_name}]
+            config_metadata[f'{self.agent_vip_prefix}.{ahu_name}'] = [{"config": config_file_name}]
 
         if config_metadata:
             config_metafile_name = f"{self.output_dir}/config_metadata.json"

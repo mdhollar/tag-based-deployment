@@ -57,6 +57,8 @@ class AirsideEconomizerConfigGenerator:
         self.output_errors = os.path.join(self.output_dir, "errors")
         os.makedirs(self.output_errors, exist_ok=True)
 
+        self.agent_vip_prefix = self.config_dict.get("agent_vip_prefix", "economizer")
+
         # # Airside economizer point name to metadata(miniDis/Dis field) map
         # "supply_fan_status": "s:SaFanCmd",  # supply fan run command
         # "outdoor_air_temperature": "s:OaTemp",
@@ -95,7 +97,7 @@ class AirsideEconomizerConfigGenerator:
                 config_file_name = os.path.abspath(f"{self.output_configs}/{ahu_name}.json")
                 with open(config_file_name, 'w') as outfile:
                     json.dump(result_dict, outfile, indent=4)
-                config_metadata["airside-economizer-" + ahu_name] = [{"config": config_file_name}]
+                config_metadata[f'{self.agent_vip_prefix}.{ahu_name}'] = [{"config": config_file_name}]
 
         if config_metadata:
             config_metafile_name = f"{self.output_dir}/config_metadata.json"
