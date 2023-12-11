@@ -1,10 +1,18 @@
 ---
-- name: Setup Host
-  import_playbook: volttron.deployment.host_config
-  vars:
-    on_hosts: collectors
+- name: Setup Host and Platform
+  hosts: collectors
+  roles:
+    - volttron.deployment.system_dependencies
+    - volttron.deployment.set_defaults
+    - volttron.deployment.get_volttron_source
+    - volttron.deployment.ansible_venv
+    - volttron.deployment.install_platform
+    - role: volttron.deployment.setup_logging
+      when: use_rotating_log
+    - role: volttron.deployment.make_service
+      when: make_volttron_service is defined and make_volttron_service | bool
 
-- name: Download Repositories
+- name: Setup Normal Framework and Driver
   hosts: collectors
   tasks:
     - name: Clone Normal Framework
@@ -15,6 +23,29 @@
         http_proxy: "{{ http_proxy }}"
         https_proxy: "{{ https_proxy }}"
 
+    - name: Find Normal Framework Tarball
+      ansible.builtin.find:
+        paths: "{{ansible_env.HOME}}/volttron-interface/"
+        patterns: "normalgw-*.tar.gz"
+      register: normal_tarball
+
+    - name: Install Normal Framework
+      ansible.builtin.pip:
+        name: file:///{{normal_tarball.files[0].path}}
+        executable: "{{ volttron_venv }}/bin/pip"
+      environment:
+        http_proxy: "{{ http_proxy }}"
+        https_proxy: "{{ https_proxy }}"
+
+    - name: Install Normal Driver
+      ansible.builtin.copy:
+        remote_src: yes
+        src: "{{ansible_env.HOME}}/volttron-interface/normalgw.py"
+        dest: "{{ansible_env.HOME}}/volttron/services/core/PlatformDriverAgent/platform_driver/interfaces/normalgw.py"
+
+- name: Setup Environment for Applications and Config Generation
+  hosts: collectors
+  tasks:
     - name: Clone VOLTTRON PNNL Applications
       ansible.builtin.git:
         repo: https://github.com/volttron/volttron-pnnl-applications
@@ -35,16 +66,6 @@
         src: ../config_generators
         dest: "{{ ansible_env.HOME }}"
 
-- name: Setup VOLTTRON
-  import_playbook: volttron.deployment.install_platform
-  vars:
-    on_hosts: collectors
-    http_proxy: "{{ http_proxy }}"
-    https_proxy: "{{ https_proxy }}"
-
-- name: Install dependencies for Config Generators
-  hosts: collectors
-  tasks:
     - name: Install psycopg2
       ansible.builtin.pip:
         name: psycopg2-binary==2.9.3
@@ -53,39 +74,10 @@
         http_proxy: "{{ http_proxy }}"
         https_proxy: "{{ https_proxy }}"
 
-- name: Setup Normal Framework and Driver
-  hosts: collectors
-  tasks:
-    - name: Find Normal Framework Tarball
-      ansible.builtin.find:
-        paths: "{{ansible_env.HOME}}/volttron-interface/"
-        patterns: "normalgw-*.tar.gz"
-      register: normal_tarball
-    - name: Install Normal Framework
-      ansible.builtin.pip:
-        name: file:///{{normal_tarball.files[0].path}}
-        executable: "{{ volttron_venv }}/bin/pip"
-      environment:
-        http_proxy: "{{ http_proxy }}"
-        https_proxy: "{{ https_proxy }}"
-
-    - name: Install Normal Driver
-      ansible.builtin.copy:
-        remote_src: yes
-        src: "{{ansible_env.HOME}}/volttron-interface/normalgw.py"
-        dest: "{{ansible_env.HOME}}/volttron/services/core/PlatformDriverAgent/platform_driver/interfaces/normalgw.py"
-
-- name: Setup Rotating Logs for VOLTTRON
-  import_playbook: volttron.deployment.setup_logging
-  vars:
-    on_hosts: collectors
-  when: use_rotating_log
-
-- name: Make VOLTTRON a Service
-  import_playbook: volttron.deployment.make_service
-  when: make_volttron_service is defined and make_volttron_service | bool
-  vars:
-    on_hosts: collectors
+    - name: Install Generator Scripts
+      ansible.builtin.shell:
+        cmd: "{{ ansible_python_interpreter }} {{ ansible_env.HOME }}/config_generators/setup.py install"
+        chdir: "{{ ansible_env.HOME }}/config_generators"
 
 - name: Configure and Install Applications
   hosts: collectors
@@ -141,7 +133,7 @@
 - name: Setup Historian
   hosts: brookland
   roles:
-    - volttron.deployment.set_defaults
+#    - volttron.deployment.set_defaults  # Probably not needed again here?
 #    - volttron.tag_based_deployment.historian_tunnel
   tasks:
     - name: Copy Historian Config

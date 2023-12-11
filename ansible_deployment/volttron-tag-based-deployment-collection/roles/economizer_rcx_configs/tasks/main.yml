@@ -4,11 +4,6 @@
     src: economizer_rcx_generator_config.j2
     dest: "{{ host_configs_dir }}/economizer_rcx_generator_config.json"
 
-- name: Install Generator Scripts
-  ansible.builtin.shell:
-    cmd: "{{ ansible_python_interpreter }} {{ ansible_env.HOME }}/config_generators/setup.py install"
-    chdir: "{{ ansible_env.HOME }}/config_generators"
-
 - name: Copy JSON Sources
   ansible.posix.synchronize:
     src: "{{ economizer_rcx_generator.json.source_path }}"
