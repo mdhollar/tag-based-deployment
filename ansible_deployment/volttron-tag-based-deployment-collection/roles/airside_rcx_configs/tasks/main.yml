@@ -62,6 +62,14 @@
   register: airside_rcx_config_set
   loop: "{{ airside_rcx_configs.files }}"
 
+# TODO: Remove this once it is possible to perform bulk config updates while volttron is running.
+- name: Shutdown VOLTTRON if Running
+  ansible.builtin.systemd:
+    name: volttron
+    enabled: yes
+    state: stopped
+  become: yes
+
 - name: Install Airside RCx Config
   ansible.builtin.shell:
     cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file configs/airside_rcx"
@@ -69,7 +77,7 @@
 - name: Setup Agent Installs
   set_fact:
     agents_to_install: "{{ 
-    agents_to_install | combine({ 'airside.' + ( item.device.unit | dict2items | map(attribute='key') | first ) : config_dict })
+    agents_to_install | default({}) | combine({ agent_vip_prefix + '.' + ( item.device.unit | dict2items | map(attribute='key') | first ) : config_dict })
     }}"
   loop: "{{ airside_rcx_config_set.results | map(attribute='content') | map('b64decode') | map('from_json') }}"
   vars:
@@ -82,3 +90,4 @@
       agent_tag: 'rcx'
       skip_requirements: False
       force_install: False
+    agent_vip_prefix: "{{ airside_rcx_generator.agent_vip_prefix | default('airside') }}"

@@ -56,6 +56,7 @@
     name: volttron
     enabled: yes
     state: stopped
+  become: yes
 
 - name: Install ILC Configs
   ansible.builtin.shell:
@@ -70,3 +71,20 @@
   environment:
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"
+
+- name: Setup Agent Install
+  set_fact:
+    agents_to_install: "{{ 
+    agents_to_install | default({}) | combine({ agent_vip : config_dict })
+    }}"
+  vars:
+    config_dict:
+      agent_source: "{{ ansible_env.HOME }}/volttron-pnnl-applications/GridServices/Control/ILCAgent"
+      agent_state: 'present'
+      agent_enabled: True
+      agent_priority: 50
+      agent_running: True
+      agent_tag: ilc
+      skip_requirements: False
+      force_install: False
+    agent_vip: "{{ driver_generator.ilc_agent_vip | default('agent.ilc') }}"

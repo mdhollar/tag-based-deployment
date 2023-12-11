@@ -56,12 +56,38 @@
     excludes: "unmapped_device_details"
   register: economizer_rcx_configs
 
+# TODO: Remove this once it is possible to perform bulk config updates while volttron is running.
+- name: Shutdown VOLTTRON if Running
+  ansible.builtin.systemd:
+    name: volttron
+    enabled: yes
+    state: stopped
+  become: yes
+
 - name: Load VOLTTRON Economizer RCx Configurations
   ansible.builtin.slurp:
     src: "{{ item.path }}"
   register: economizer_rcx_config_set
   loop: "{{ economizer_rcx_configs.files }}"
 
-- name: Install Config Set
-  include_tasks: setup_agents.yml
+- name: Install Economizer RCx Config
+  ansible.builtin.shell:
+    cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file configs/economizer_rcx"
+
+- name: Setup Agent Installs
+  set_fact:
+    agents_to_install: "{{ 
+    agents_to_install | default({}) | combine({ agent_vip_prefix + '.' + ( item.device.unit | dict2items | map(attribute='key') | first ) : config_dict })
+    }}"
   loop: "{{ economizer_rcx_config_set.results | map(attribute='content') | map('b64decode') | map('from_json') }}"
+  vars:
+    config_dict:
+      agent_source: '{{ ansible_env.HOME }}/volttron-pnnl-applications/EnergyEfficiency/EconomizerRCxAgent/'
+      agent_state: 'present'
+      agent_enabled: True
+      agent_priority: 50
+      agent_running: true
+      agent_tag: 'rcx'
+      skip_requirements: False
+      force_install: False
+    agent_vip_prefix: "{{ economizer_rcx_generator.agent_vip_prefix | default('economizer') }}"
