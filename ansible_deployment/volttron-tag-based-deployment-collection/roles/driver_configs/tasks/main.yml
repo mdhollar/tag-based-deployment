@@ -52,35 +52,36 @@
 
 - name: Find Generated Files
   ansible.builtin.find:
-    paths: "{{ host_configs_dir }}/drivers"
+    paths: "{{ host_configs_dir }}/drivers/configs"
     excludes: "unmapped_device_details"
   register: driver_configs
 
-- name: Load VOLTTRON Driver Configurations
-  ansible.builtin.slurp:
-    src: "{{ item.path }}"
-  register: driver_config_set
-  with_items: "{{ driver_configs.files }}"
+# TODO: Remove this once it is possible to perform bulk config updates while volttron is running.
+- name: Shutdown VOLTTRON if Running
+  ansible.builtin.systemd:
+    name: volttron
+    enabled: yes
+    state: stopped
+  become: yes
 
 - name: Install Config Set
-  include_tasks: install_config.yml
-  loop: "{{ driver_config_set.results | map(attribute='content') | map('b64decode') | map('from_json') }}"
+  ansible.builtin.shell:
+    cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file {{ item.path }}"
+  loop: "{{ driver_configs.files }}"
 
-- name: Install Driver Agent
-  volttron.deployment.volttron_agent:
-    volttron_root: "{{ volttron_root }}"
-    volttron_home: "{{ volttron_home }}"
-    volttron_venv: "{{ volttron_venv }}"
-    agent_vip_id: "platform.driver"
-    agent_spec: "{{ this_spec }}"
+- name: Setup Agent Install
+  set_fact:
+    agents_to_install: "{{ 
+    agents_to_install | default({}) | combine({ agent_vip : config_dict })
+    }}"
   vars:
-    - this_spec: {
-                   agent_source: "{{ volttron_root }}/services/core/PlatformDriverAgent",
-                   agent_state: 'present',
-                   agent_enabled: True,
-                   agent_priority: 30,
-                   agent_running: true,
-                   agent_tag: 'driver',
-                   skip_requirements: False,
-                   force_install: False
-                 }
+    config_dict:
+      agent_source: '{{ ansible_env.HOME }}/volttron/services/core/PlatformDriverAgent'
+      agent_state: 'present'
+      agent_enabled: True
+      agent_priority: 50
+      agent_running: true
+      agent_tag: 'driver'
+      skip_requirements: False
+      force_install: False
+    agent_vip: "{{ driver_generator.driver_vip | default('platform.driver') }}"

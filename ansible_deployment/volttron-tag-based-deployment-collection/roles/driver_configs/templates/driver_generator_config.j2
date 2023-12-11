@@ -16,13 +16,18 @@
             "equip_table": "{{ tag_data.database.equipment_table }}",
             "point_table": "{{ tag_data.database.point_table }}"
         {% endif %}
-     },
+     }
 
      # where generated configs should be saved. Code will try to do makedir -p
-     "output_dir":"{{ driver_generator.output_dir }}",
+     ,"output_dir":"{{ driver_generator.output_dir }}"
+
+     # VIP identity to use when installing configurations.
+     {% if driver_generator.driver_vip is defined %}
+     ,"driver_vip":"{{ driver_generator.driver_vip }}"
+     {% endif %}
 
      # Template for driver configuration
-     "config_template": {% include 'volttron_driver_device_config.j2' %}
+     ,"config_template": {% include 'volttron_driver_device_config.j2' %}
 
      # If provided query will be filtered using this condition
      {% if site_info.site_id is defined %}
@@ -38,10 +43,9 @@
      {% if driver_generator.building is defined %}
         ,"building": "{{ driver_generator.building }}"
      {% endif %}
+
      # optional driver topic_prefix.
-     {% if driver_generator.topic_prefix is not defined %}
-        ,"topic_prefix": "default devices/<campus>/<building/site>/<device>/<subdevice>"
-     {% else %}
+     {% if driver_generator.topic_prefix is defined %}
         ,"topic_prefix": "{{ driver_generator.topic_prefix }}"
      {% endif %}
  }
