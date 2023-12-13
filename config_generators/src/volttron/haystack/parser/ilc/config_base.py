@@ -94,6 +94,7 @@ class ILCConfigGenerator:
 
         self.criteria_template = {"device_topic": ""}
         self.criteria_template.update(config_template["criteria_config"])
+        self.mappers = config_template.get('mapper_config', {})
 
         # initialize output dir
         default_prefix = self.building + "_" if self.building else ""
@@ -368,6 +369,7 @@ class ILCConfigGenerator:
             criteria_config[vav_topic] = {vav: curtail_config}
 
         if criteria_config:
+            criteria_config['mappers'] = self.mappers
             file_name = f"{self.device_type}_criteria.config"
             file_path = os.path.abspath(os.path.join(self.output_configs, file_name))
             with open(file_path, 'w') as outfile:
