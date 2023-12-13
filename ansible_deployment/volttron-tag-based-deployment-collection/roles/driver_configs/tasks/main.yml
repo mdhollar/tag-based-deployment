@@ -51,14 +51,6 @@
     excludes: "unmapped_device_details"
   register: driver_configs
 
-# TODO: Remove this once it is possible to perform bulk config updates while volttron is running.
-- name: Shutdown VOLTTRON if Running
-  ansible.builtin.systemd:
-    name: volttron
-    enabled: yes
-    state: stopped
-  become: yes
-
 - name: Install Config Set
   ansible.builtin.shell:
     cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file {{ item.path }}"
