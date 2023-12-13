@@ -57,8 +57,7 @@
 - name: Configure and Install Applications
   hosts: collectors
   vars:
-    - agents_to_install: {}
-
+    - agents_to_install: agents_to_install | default({})
   roles:
     - volttron.tag_based_deployment.suspend_volttron_and_get_state
     - role: volttron.tag_based_deployment.driver_configs
@@ -89,3 +88,12 @@
         volttron_venv: "{{ volttron_venv }}"
         agent_vip_id: "platform.historian"
         agent_spec: "{{host_configuration['agents']['platform.historian']}}"
+
+- name: Dynamically Install Agents
+  hosts: collectors
+  vars:
+    - agents_to_install: agents_to_install | default({})
+  roles:
+    - volttron.tag_based_deployment.start_volttron_and_get_state
+    - volttron.tag_based_deployment.dynamically_install_agents
+    - volttron.tag_based_deployment.restore_volttron_state
