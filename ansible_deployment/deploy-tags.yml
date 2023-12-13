@@ -1,11 +1,15 @@
 ---
+- name: Setup Ansible Environment
+  hosts: collectors
+  roles:
+    - volttron.deployment.set_defaults
+    - volttron.deployment.ansible_venv
+
 - name: Setup Host and Platform
   hosts: collectors
   roles:
     - volttron.deployment.system_dependencies
-    - volttron.deployment.set_defaults
     - volttron.deployment.get_volttron_source
-    - volttron.deployment.ansible_venv
     - volttron.deployment.install_platform
     - role: volttron.deployment.setup_logging
       when: use_rotating_log
@@ -85,8 +89,7 @@
     - agents_to_install: {}
 
   roles:
-    - volttron.deployment.set_defaults
-    - volttron.deployment.ansible_venv
+    - volttron.tag_based_deployment.suspend_volttron_and_get_state
     - role: volttron.tag_based_deployment.driver_configs
       when: driver_generator is defined
     - role: volttron.tag_based_deployment.airside_rcx_configs
@@ -95,40 +98,7 @@
       when: economizer_rcx_generator is defined
     - role: volttron.tag_based_deployment.ilc_configs
       when: ilc_generator is defined
-
-  tasks:
-    - name: Start VOLTTRON as Service
-      ansible.builtin.systemd:
-        name: volttron
-        daemon_reload: yes
-        enabled: yes
-        state: started
-      when: make_volttron_service is defined and make_volttron_service | bool
-      become: yes
-
-    - name: Start VOLTTRON Not as Service
-      volttron.deployment.volttron_platform:
-        volttron_root: "{{volttron_root}}"
-        volttron_home: "{{volttron_home}}"
-        state: running
-      when: make_volttron_service is not defined or not make_volttron_service | bool
-
-    - name: Wait for VOLTTRON to start
-      ansible.builtin.shell:
-        cmd: "{{ volttron_venv }}/bin/vctl status"
-      register: volttron_status_result
-      until: volttron_status_result.rc == 0
-      retries: 10
-      delay: 3
-
-    - name: Install Application Agents
-      volttron.deployment.volttron_agent:
-        volttron_root: "{{ volttron_root }}"
-        volttron_home: "{{ volttron_home }}"
-        volttron_venv: "{{ volttron_venv }}"
-        agent_vip_id: "{{ item.key }}"
-        agent_spec: "{{ item.value }}"
-      loop: "{{ agents_to_install | dict2items }}"
+    - volttron.tag_based_deployment.restore_volttron_state
 
 - name: Setup Historian
   hosts: brookland

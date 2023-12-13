@@ -51,14 +51,6 @@
     excludes: "unmapped_device_details"
   register: economizer_rcx_configs
 
-# TODO: Remove this once it is possible to perform bulk config updates while volttron is running.
-- name: Shutdown VOLTTRON if Running
-  ansible.builtin.systemd:
-    name: volttron
-    enabled: yes
-    state: stopped
-  become: yes
-
 - name: Load VOLTTRON Economizer RCx Configurations
   ansible.builtin.slurp:
     src: "{{ item.path }}"

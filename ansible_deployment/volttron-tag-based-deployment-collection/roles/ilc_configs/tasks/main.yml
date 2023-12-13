@@ -45,14 +45,6 @@
     flat: yes
   when: (generator_return_json.rc is defined and generator_return_json.rc == 1) or (generator_return_db.rc is defined and generator_return_db.rc == 1)
 
-# TODO: Remove this once it is possible to perform bulk config updates while volttron is running.
-- name: Shutdown VOLTTRON if Running
-  ansible.builtin.systemd:
-    name: volttron
-    enabled: yes
-    state: stopped
-  become: yes
-
 - name: Install ILC Configs
   ansible.builtin.shell:
     cmd: "{{ volttron_venv }}/bin/vcfg --vhome {{ volttron_home }} update-config-store --metadata-file configs/ilc"
