@@ -1,23 +1,15 @@
 ---
-#- name: Install AutoSSH
-#  become: yes
-#  ansible.builtin.package:
-#    name: autossh
-#    state: present
+- name: Install AutoSSH
+  become: yes
+  ansible.builtin.package:
+    name: autossh
+    state: present
 
 - name: Install SSH Key
   ansible.builtin.copy:
     src: "{{ historian_tunnel.key_file_local_path }}"
     dest: "{{ historian_tunnel.key_file_remote_path }}"
-
-- name: Create Historian Tunnel Script
-  become: yes
-  ansible.builtin.template:
-    src: historian_tunnel_script.j2
-    dest: "{{ ansible_env.HOME }}/ssh_tunnel.sh"
-    mode: 0755
-#    group: "{{ ansible_user }}"
-#    owner: "{{ ansible_user }}"
+    mode: '0600'
 
 - name: Create Historian Tunnel Service File
   become: yes
