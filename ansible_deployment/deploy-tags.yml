@@ -71,7 +71,7 @@
     - volttron.tag_based_deployment.restore_volttron_state
 
 - name: Setup Historian Tunnel
-  hosts: brookland
+  hosts: collectors
   roles:
     - volttron.tag_based_deployment.historian_tunnel
 
