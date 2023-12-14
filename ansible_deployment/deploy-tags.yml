@@ -81,19 +81,12 @@
         src: "agent_configs/{{host_configuration['agents']['platform.historian']['agent_config_store'][0]['path']}}"
         dest: "{{ host_configs_dir }}"
 
-    - name: Install Historian Agent
-      volttron.deployment.volttron_agent:
-        volttron_root: "{{ volttron_root }}"
-        volttron_home: "{{ volttron_home }}"
-        volttron_venv: "{{ volttron_venv }}"
-        agent_vip_id: "platform.historian"
-        agent_spec: "{{host_configuration['agents']['platform.historian']}}"
-
-- name: Dynamically Install Agents
+- name: Start VOLTTRON and Install Agents
   hosts: collectors
   vars:
     - agents_to_install: agents_to_install | default({})
   roles:
+    - volttron.deployment.copy_agent_configs
     - volttron.tag_based_deployment.start_volttron_and_get_state
     - volttron.tag_based_deployment.dynamically_install_agents
-    - volttron.tag_based_deployment.restore_volttron_state
+

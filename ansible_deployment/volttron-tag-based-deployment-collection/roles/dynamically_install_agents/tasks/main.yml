@@ -7,6 +7,5 @@
     volttron_venv: "{{ volttron_venv }}"
     agent_vip_id: "{{ item.key }}"
     agent_spec: "{{ item.value }}"
+    agent_configs_dir: "{{ host_configs_dir }}"
   loop: "{{ agents_to_install | default({}) | dict2items }}"
-  vars:
-    - agents_to_install: "{{ undef() }}"
