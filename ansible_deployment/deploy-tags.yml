@@ -70,16 +70,10 @@
       when: ilc_generator is defined
     - volttron.tag_based_deployment.restore_volttron_state
 
-- name: Setup Historian
+- name: Setup Historian Tunnel
   hosts: brookland
   roles:
-#    - volttron.deployment.set_defaults  # Probably not needed again here?
-#    - volttron.tag_based_deployment.historian_tunnel
-  tasks:
-    - name: Copy Historian Config
-      ansible.builtin.copy:
-        src: "agent_configs/{{host_configuration['agents']['platform.historian']['agent_config_store'][0]['path']}}"
-        dest: "{{ host_configs_dir }}"
+    - volttron.tag_based_deployment.historian_tunnel
 
 - name: Start VOLTTRON and Install Agents
   hosts: collectors
