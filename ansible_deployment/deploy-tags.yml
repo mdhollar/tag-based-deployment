@@ -17,47 +17,11 @@
       when: make_volttron_service is defined and make_volttron_service | bool
     - volttron.tag_based_deployment.install_normal_framework_driver
 
-
-- name: Setup Environment for Applications and Config Generation
-  hosts: collectors
-  tasks:
-    - name: Clone VOLTTRON PNNL Applications
-      ansible.builtin.git:
-        repo: https://github.com/volttron/volttron-pnnl-applications
-        dest: volttron-pnnl-applications
-      environment:
-        http_proxy: "{{ http_proxy }}"
-        https_proxy: "{{ https_proxy }}"
-
-    - name: install rsync
-      become: yes
-      apt:
-        state: present
-        name:
-          - rsync
-
-    - name: Clone Config Generators
-      ansible.posix.synchronize:
-        src: ../config_generators
-        dest: "{{ ansible_env.HOME }}"
-
-    - name: Install psycopg2
-      ansible.builtin.pip:
-        name: psycopg2-binary==2.9.3
-        executable: "{{ venv_for_ansible }}/bin/pip"
-      environment:
-        http_proxy: "{{ http_proxy }}"
-        https_proxy: "{{ https_proxy }}"
-
-    - name: Install Generator Scripts
-      ansible.builtin.shell:
-        cmd: "{{ ansible_python_interpreter }} {{ ansible_env.HOME }}/config_generators/setup.py install"
-        chdir: "{{ ansible_env.HOME }}/config_generators"
-
 - name: Configure and Install Applications
   hosts: collectors
   roles:
     - volttron.tag_based_deployment.suspend_volttron_and_get_state
+    - volttron.tag_based_deployment.config_generators
     - role: volttron.tag_based_deployment.driver_configs
       when: driver_generator is defined
     - role: volttron.tag_based_deployment.airside_rcx_configs
