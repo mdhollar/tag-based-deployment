@@ -73,6 +73,34 @@ class IntellimationDriverConfigGenerator(DriverConfigGenerator):
                 self.unmapped_device_details[vav] = {"type": "vav", "error": "Unable to find ahuRef"}
         return result
 
+    def get_building_meter(self):
+        print('IN GET_BUILDING_METER :)')
+        if self.configured_power_meter_id:
+            query = f"SELECT tags->>'id' \
+                      FROM {self.equip_table} \
+                      WHERE tags->>'id' = '{self.configured_power_meter_id}'"
+        else:
+            query = f"SELECT tags->>'id' \
+                                  FROM {self.equip_table} \
+                                  WHERE tags->>'{self.power_meter_tag}' is NOT NULL"
+        if self.site_id:
+            query = query + f" AND tags->>'siteRef'='{self.site_id}' "
+
+        result = self.execute_query(query)
+        if result:
+            if len(result) == 1:
+                return result[0][0]
+            if len(result) > 1 and not self.configured_power_meter_id:
+                raise ValueError(f"More than one equipment found with the tag {self.power_meter_tag}. Please "
+                                 f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                                 f"building power meter")
+            if len(result) > 1 and self.configured_power_meter_id:
+                raise ValueError(f"More than one equipment found with the id {self.configured_power_meter_id}. Please "
+                                 f"add 'power_meter_id' parameter to configuration to uniquely identify whole "
+                                 f"building power meter")
+        return ""
+
+
     def query_device_id_name(self, equip_id, equip_type):
         query = f"SELECT device_name, topic_name \
                   FROM {self.point_table} \
