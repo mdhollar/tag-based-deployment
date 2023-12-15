@@ -40,12 +40,16 @@ class DriverConfigGenerator:
         if not topic_prefix.endswith("/"):
             topic_prefix = topic_prefix + "/"
         self.ahu_topic_pattern = topic_prefix + "{}"
+        self.meter_topic_pattern = topic_prefix + "{}"
         self.vav_topic_pattern = topic_prefix + "{ahu}/{vav}"
 
         # List of all ahus equip ids
         self.ahu_list = []
         # List of all vav equip ids
         self.vav_list = []
+
+        self.power_meter_tag = 'siteMeter'
+        self.configured_power_meter_id = self.config_dict.get("power_meter_id", "")
 
         # If there are any vav's that are not mapped to a AHU use this dict to give additional details for user
         # to help manually find the corresponding ahu
@@ -79,6 +83,14 @@ class DriverConfigGenerator:
         """
         pass
 
+    @abstractmethod
+    def get_building_meter(self):
+        """
+        Should return a meter.
+
+        """
+        pass
+
     def generate_configs(self):
         ahu_and_vavs = self.get_ahu_and_vavs()
         if isinstance(ahu_and_vavs, dict):
@@ -96,6 +108,14 @@ class DriverConfigGenerator:
                 with open(f"{self.output_errors}/unmapped_vavs.json", 'w') as outfile:
                     json.dump(result_dict, outfile, indent=4)
 
+        try:
+            power_meter_id = self.get_building_meter()
+        except ValueError as e:
+            return {"building_power_meter": {"error": f"Unable to locate building power meter: Error: {e}"}}
+        meter_name, result_dict = self.generate_meter_config(power_meter_id)
+        with open(f"{self.output_configs}/{meter_name}.json", 'w') as outfile:
+            json.dump(result_dict, outfile, indent=4)
+
         # If unmapped devices exists, write additional unmapped_devices.txt that gives more info to user to map manually
         if self.unmapped_device_details:
             err_file = f"{self.output_errors}/unmapped_device_details"
@@ -107,6 +127,18 @@ class DriverConfigGenerator:
             sys.exit(1)
         else:
             sys.exit(0)
+
+    def generate_meter_config(self, meter_id):
+        print('IN GENERATE_METER_CONFIG :)')
+        final_mapper = dict()
+        final_mapper[self.driver_vip] = []
+        meter = ""
+        meter = self.get_name_from_id(meter_id)
+        topic = self.meter_topic_pattern.format(meter)
+        driver_config = self.generate_config_from_template(meter_id, 'meter')
+        if driver_config:
+            final_mapper[self.driver_vip].append({"config-name": topic, "config": driver_config})
+        return meter, final_mapper
 
     def generate_ahu_configs(self, ahu_id, vavs):
         final_mapper = dict()

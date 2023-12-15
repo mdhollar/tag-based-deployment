@@ -48,4 +48,12 @@
      {% if driver_generator.topic_prefix is defined %}
         ,"topic_prefix": "{{ driver_generator.topic_prefix }}"
      {% endif %}
+
+     {% if ilc_generator.building_power_meter is defined %}
+        ,"building_power_meter": "{{ ilc_generator.building_power_meter }}"
+     {% endif %}
+
+     {% if ilc_generator.power_meter_id is defined %}
+        ,"power_meter_id": "{{ ilc_generator.power_meter_id }}"
+     {% endif %}
  }
