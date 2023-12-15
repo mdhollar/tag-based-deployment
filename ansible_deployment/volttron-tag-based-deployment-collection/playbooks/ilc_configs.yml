@@ -2,4 +2,6 @@
 - name: configure agents
   hosts: "{{ on_hosts | default('all') }}"
   roles:
+    - volttron.tag_based_deployment.suspend_volttron_and_get_state
     - volttron.tag_based_deployment.ilc_configs
+    - volttron.tag_based_deployment.restore_volttron_state
