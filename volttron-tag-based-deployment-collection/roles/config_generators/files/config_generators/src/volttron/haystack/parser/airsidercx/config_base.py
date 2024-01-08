@@ -145,7 +145,7 @@ class AirsideRCxConfigGenerator:
 
         # varify if mandatory ahu points are there
         # fan_status or fan_speedcmd should be available for airsidercx
-        if not point_mapping.get("fan_status") and not point_mapping.get("fan_speed"):
+        if not point_mapping.get("fan_status") and not point_mapping.get("fan_speedcmd"):
             # Cannot proceed. Add detals to unmapped devices dict and return None
             self.unmapped_device_details[ahu_id] = {"type": "ahu",
                                                     "error": "Neither fan_status nor fan_speed point is available",
