@@ -41,18 +41,7 @@
         ,"power_meter_id": "{{ ilc_generator.power_meter_id }}"
      {% endif %}
 
-     ,"point_meta_map": {
-            "WholeBuildingPower": "{{ ilc_generator.point_meta_map.whole_building_power }}",
-            "ZoneCoolingTemperatureSetPoint":  "{{ ilc_generator.point_meta_map.zone_cooling_temperature_setpoint }}",
-            "MinimumAirFlow": "{{ ilc_generator.point_meta_map.minimum_air_flow }}",
-            {% if ilc_generator.point_meta_map.zone_air_flow_setpoint is defined %}
-                "ZoneAirFlowSetpoint": "{{ ilc_generator.point_meta_map.zone_air_flow_setpoint }}",
-            {% endif %}
-            "ZoneAirFlow": "{{ ilc_generator.point_meta_map.zone_air_flow }}",
-            "MaxAirFlow": "{{ ilc_generator.point_meta_map.max_air_flow }}",
-            "ZoneTemperature": "{{ ilc_generator.point_meta_map.zone_temperature }}",
-            "OccupancyCommand": "{{ ilc_generator.point_meta_map.occupancy_command }}"
-            }
+     ,"point_meta_map": {{ ilc_generator.point_meta_map | to_json }}
 
      # where generated configs should be saved. Code will try to do makedir -p
      ,"output_dir":"{{ ilc_generator.output_dir }}"
