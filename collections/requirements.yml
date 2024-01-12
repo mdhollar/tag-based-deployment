@@ -1,4 +1,5 @@
-collections:
+---
+collections: []
   - name: https://github.com/VOLTTRON/volttron-ansible.git
     type: git
     version: main
